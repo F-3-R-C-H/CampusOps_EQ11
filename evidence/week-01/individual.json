@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "week": 1,
+  "teamId": "EQ11",
+  "members": [
+    {
+      "studentId": "REEMPLAZAR_MATRICULA_FERNANDO",
+      "commitShas": [
+        "REEMPLAZAR_AQUI_CON_TU_SHA"
+      ],
+      "files": [
+        "Makefile",
+        "package.json",
+        "reports/week-01/baseline.json",
+        "docs/problem-definition.md"
+      ],
+      "tests": [
+        "course-tests/smoke.test.tsx"
+      ],
+      "reviews": [],
+      "prediction": "El smoke test inicial fallará por la falta de configuraciones del entorno, y pasará tras los ajustes y reestructuración.",
+      "command": "npm run test:smoke",
+      "observedResult": "PASS: renders the reproducible baseline and resolves backend state",
+      "explanation": "Se reestructuró el repositorio moviendo archivos a la raíz y se generó el baseline comprobando el paso exitoso de los tests locales."
+    },
+    {
+      "studentId": "REEMPLAZAR_MATRICULA_DANNA",
+      "commitShas": [
+        "REEMPLAZAR_AQUI_CON_SHA_DE_DANNA"
+      ],
+      "files": [
+        "docs/risk-register.md"
+      ],
+      "tests": [],
+      "reviews": [
+        "docs/problem-definition.md"
+      ],
+      "prediction": "La documentación de riesgos será validada exitosamente por el script de CI/CD para contener las palabras clave requeridas.",
+      "command": "make feedback",
+      "observedResult": "El linter y validador aprueban el contenido del archivo markdown.",
+      "explanation": "Se redactaron los 3 riesgos principales de CampusOps (caída del backend, datos expuestos y sincronización offline) usando el formato tabular requerido."
+    },
+    {
+      "studentId": "REEMPLAZAR_MATRICULA_TONANTZIN",
+      "commitShas": [
+        "REEMPLAZAR_AQUI_CON_SHA_DE_TONANTZIN"
+      ],
+      "files": [
+        "evidence/week-01/engineering.json"
+      ],
+      "tests": [],
+      "reviews": [
+        "reports/week-01/baseline.json"
+      ],
+      "prediction": "El archivo de ingeniería justificará técnica y claramente la reestructuración del repositorio cumpliendo con el schema requerido.",
+      "command": "make verify-week-01",
+      "observedResult": "El JSON de ingeniería pasó la validación de estructura de la semana 01.",
+      "explanation": "Se documentó el tradeoff de tener la estructura del proyecto en la raíz del repositorio y las alternativas consideradas."
+    }
+  ]
+}

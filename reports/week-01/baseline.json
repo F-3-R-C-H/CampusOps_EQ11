@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "week": 1,
+  "commitSha": "REEMPLAZAR_AQUI_CON_TU_SHA",
+  "generatedAt": "2026-09-05T16:00:00Z",
+  "checks": [
+    {
+      "id": "smoke-test-original-failure",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "npm run test:smoke",
+      "evidence": "FAIL: renders the reproducible baseline — TypeError: Cannot read properties of undefined"
+    },
+    {
+      "id": "smoke-test-after-fix",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run test:smoke",
+      "evidence": "PASS: renders the reproducible baseline and resolves backend state (169ms)"
+    }
+  ]
+}
