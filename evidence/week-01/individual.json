@@ -41,9 +41,9 @@
       "explanation": "Se redactaron los 3 riesgos principales de CampusOps (caída del backend, datos expuestos y sincronización offline) usando el formato tabular requerido."
     },
     {
-      "studentId": "REEMPLAZAR_MATRICULA_TONANTZIN",
+      "studentId": "3523110858",
       "commitShas": [
-        "REEMPLAZAR_AQUI_CON_SHA_DE_TONANTZIN"
+        "8f89eeef5123931f4bc501cd951caa0953b59154"
       ],
       "files": [
         "evidence/week-01/engineering.json"

@@ -7,13 +7,14 @@
     "Mantener la carpeta student-starter/ como una subcarpeta anidada.",
     "Utilizar una estructura de monorepo compleja con workspaces de npm."
   ],
-  "tradeoff": {
-    "benefit": "La raíz plana permite ejecutar herramientas clave como 'make feedback' y scripts de npm directamente sin navegar a subcarpetas, lo que simplifica la CI/CD en GitHub Actions y cumple explícitamente con las reglas del profesor.",
-    "cost": "Se pierde una separación física inicial estricta (namespaces separados) en caso de que en un futuro se agreguen múltiples backends aislados en el mismo repositorio."
-  },
+  "tradeoff": [
+    "Beneficio: la raíz plana permite ejecutar 'make feedback' y los scripts de npm directamente sin navegar a subcarpetas, lo que simplifica la CI/CD en GitHub Actions y cumple con las reglas del profesor.",
+    "Costo: se pierde una separación física estricta entre namespaces, lo cual sería relevante si en el futuro se agregan múltiples backends aislados en el mismo repositorio."
+  ],    
   "requirementIds": [
     "AC-01",
-    "AC-02"
+    "AC-02",
+    "AC-03"
   ],
   "verification": [
     {
