@@ -6,13 +6,13 @@
     {
       "studentId": "3523110683",
       "commitShas": [
-        "48dee3bc587ed27b46a6c12f4d84d867e73a263d"
+        "7b9ff2f66caaa375835c60513bb6e7a040f2b4d1",
+        "34fbc072dc69592d71bc700deb849e77f2992112"
       ],
       "files": [
         "Makefile",
         "package.json",
-        "reports/week-01/baseline.json",
-        "docs/problem-definition.md"
+        "reports/week-01/baseline.json"
       ],
       "tests": [
         "course-tests/smoke.test.tsx"
@@ -29,24 +29,26 @@
         "dabd3f6444670d8bb2e6c4e17002fcbd4de0efde"
       ],
       "files": [
-        "docs/risk-register.md"
-      ],
-      "tests": [],
-      "reviews": [
         "docs/problem-definition.md"
       ],
-      "prediction": "La documentación de riesgos será validada exitosamente por el script de CI/CD para contener las palabras clave requeridas.",
-      "command": "make feedback",
-      "observedResult": "El linter y validador aprueban el contenido del archivo markdown.",
-      "explanation": "Se redactaron los 3 riesgos principales de CampusOps (caída del backend, datos expuestos y sincronización offline) usando el formato tabular requerido."
+      "tests": [
+        "course-tests/smoke.test.tsx"
+      ],
+      "reviews": [],
+      "prediction": "Con la falla controlada aplicada en App.tsx esperaba que la prueba fallara porque la UI mostraría 'Backend: offline' y no 'available'; con timeout extendido esperaba ver el error de aserción exacto, y después de corregir esperaba PASS.",
+      "command": "npm run test:smoke",
+      "observedResult": "Con la falla aplicada en App.tsx, la ejecución extendida (npm run test:smoke -- --testTimeout=30000) falló con: Expected substring: \"available\", Received string: \"Backend: offline\". Tras restaurar App.tsx, npm run test:smoke pasó: 1 suite y 1 test aprobados.",
+      "explanation": "Definí el problema, alcance, actores, flujo y criterios de aceptación en docs/problem-definition.md (commit dabd3f6). Diseñé y ejecuté la falla controlada: App.tsx:13 reportaba 'offline' en la rama de éxito de getBackendHealth(), por lo que smoke.test.tsx nunca encontraba 'available' y el waitFor agotaba su tiempo. La corrección restauró setStatus('available'); la falla temporal no quedó commiteada."
     },
     {
       "studentId": "3523110858",
       "commitShas": [
-        "8f89eeef5123931f4bc501cd951caa0953b59154"
+        "9275f5374bbc171f290494b72610b6d3a6047958",
+        "29429ea55b4394385de88ecf754a6f408f8206d6"
       ],
       "files": [
-        "evidence/week-01/engineering.json"
+        "evidence/week-01/engineering.json",
+        "docs/risk-register.md"
       ],
       "tests": [],
       "reviews": [
@@ -55,7 +57,7 @@
       "prediction": "El archivo de ingeniería justificará técnica y claramente la reestructuración del repositorio cumpliendo con el schema requerido.",
       "command": "make verify-week-01",
       "observedResult": "El JSON de ingeniería pasó la validación de estructura de la semana 01.",
-      "explanation": "Se documentó el tradeoff de tener la estructura del proyecto en la raíz del repositorio y las alternativas consideradas."
+      "explanation": "Se documentó el tradeoff de tener la estructura del proyecto en la raíz del repositorio y las alternativas consideradas, y se redactaron y priorizaron los tres riesgos de CampusOps en docs/risk-register.md."
     }
   ]
 }
