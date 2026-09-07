@@ -4,9 +4,9 @@
   "teamId": "EQ11",
   "members": [
     {
-      "studentId": "REEMPLAZAR_MATRICULA_FERNANDO",
+      "studentId": "3523110683",
       "commitShas": [
-        "REEMPLAZAR_AQUI_CON_TU_SHA"
+        "359eca9345c5ad0f293c4048bf49c9c922b4b014"
       ],
       "files": [
         "Makefile",
@@ -24,9 +24,9 @@
       "explanation": "Se reestructuró el repositorio moviendo archivos a la raíz y se generó el baseline comprobando el paso exitoso de los tests locales."
     },
     {
-      "studentId": "REEMPLAZAR_MATRICULA_DANNA",
+      "studentId": "3523110097",
       "commitShas": [
-        "REEMPLAZAR_AQUI_CON_SHA_DE_DANNA"
+        "dabd3f6444670d8bb2e6c4e17002fcbd4de0efde"
       ],
       "files": [
         "docs/risk-register.md"
