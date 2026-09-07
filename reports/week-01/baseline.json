@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "week": 1,
-  "commitSha": "REEMPLAZAR_AQUI_CON_TU_SHA",
-  "generatedAt": "2026-09-05T16:00:00Z",
+  "commitSha": "48dee3bc587ed27b46a6c12f4d84d867e73a263d",
+  "generatedAt": "2026-09-06T19:30:00Z",
   "checks": [
     {
-      "id": "smoke-test-original-failure",
+      "id": "falla-controlada",
       "status": "fail",
       "scenarioType": "failure",
-      "command": "npm run test:smoke",
-      "evidence": "FAIL: renders the reproducible baseline — TypeError: Cannot read properties of undefined"
+      "command": "npm run test:smoke -- --testTimeout=30000",
+      "evidence": "FAIL course-tests/smoke.test.tsx Expected substring: \"available\" Received string: \"Backend: offline\""
     },
     {
-      "id": "smoke-test-after-fix",
+      "id": "correccion-verificada",
       "status": "pass",
       "scenarioType": "nominal",
       "command": "npm run test:smoke",
-      "evidence": "PASS: renders the reproducible baseline and resolves backend state (169ms)"
+      "evidence": "PASS course-tests/smoke.test.tsx renders the reproducible baseline and resolves backend state"
     }
   ]
 }
