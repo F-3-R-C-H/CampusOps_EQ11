@@ -7,7 +7,7 @@
       "studentId": "3523110683",
       "commitShas": [
         "7b9ff2f66caaa375835c60513bb6e7a040f2b4d1",
-        "87a569a33c9b273ed369b82e1dadd5bb5777be5d"
+        "cb7e235c997115d4860e1417134735cc5028c70b"
       ],
       "files": [
         "Makefile",
@@ -26,7 +26,7 @@
     {
       "studentId": "3523110097",
       "commitShas": [
-        "87a569a33c9b273ed369b82e1dadd5bb5777be5d"
+        "cb7e235c997115d4860e1417134735cc5028c70b"
       ],
       "files": [
         "docs/problem-definition.md"
@@ -44,7 +44,7 @@
       "studentId": "3523110858",
       "commitShas": [
         "9275f5374bbc171f290494b72610b6d3a6047958",
-        "87a569a33c9b273ed369b82e1dadd5bb5777be5d"
+        "cb7e235c997115d4860e1417134735cc5028c70b"
       ],
       "files": [
         "evidence/week-01/engineering.json",
