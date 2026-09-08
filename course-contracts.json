@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "weeks": {
-    "01-a": {"required": ["docs/problem-definition.md", "docs/risk-register.md", "reports/week-01/baseline.json", "evidence/week-01/engineering.json", "evidence/week-01/individual.json"]},
+    "011": {"required": ["docs/problem-definition.md", "docs/risk-register.md", "reports/week-01/baseline.json", "evidence/week-01/engineering.json", "evidence/week-01/individual.json"]},
     "02": {"required": ["docs/adr/ADR-001-architecture.md", "docs/architecture.mmd", "reports/week-02/dependencies.json", "evidence/week-02/engineering.json", "evidence/week-02/individual.json"]},
     "03": {"required": [".github/workflows/week-03-ci-amenazas-feedback.yml", "docs/threat-model.md", "reports/week-03/security.json", "evidence/week-03/engineering.json", "evidence/week-03/individual.json"]},
     "04": {"required": ["docs/security-controls.md", "reports/week-04/secret-scan.json", "reports/week-04/negative-tests.json", "evidence/week-04/engineering.json", "evidence/week-04/individual.json"]},
