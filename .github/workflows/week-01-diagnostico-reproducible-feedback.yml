@@ -26,6 +26,8 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
       - name: Reproducible setup
         run: make setup
       - name: Public Expo Android build
