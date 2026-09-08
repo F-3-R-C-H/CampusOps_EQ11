@@ -2,13 +2,12 @@
   "schemaVersion": 1,
   "week": 1,
   "teamId": "EQ11",
-  "commitShas": ["2670307e38a34b65e95198dc112e529c266ee3d6"],
   "members": [
     {
       "studentId": "3523110683",
       "commitShas": [
         "7b9ff2f66caaa375835c60513bb6e7a040f2b4d1",
-        "2670307e38a34b65e95198dc112e529c266ee3d6 "
+        "2670307e38a34b65e95198dc112e529c266ee3d6"
       ],
       "files": [
         "Makefile",
