@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 1,
-  "commitSha": "2d65e16f6ddbd370ec465ef3041bd34da4ec8227",
+  "commitSha": "584afa57dd760f155cd43ee946b0195e19126e77",
   "decision": "Se eligió estructurar el repositorio con los archivos de configuración (package.json, Makefile, carpetas docs y src) directamente en la raíz en lugar de utilizar subcarpetas.",
   "alternatives": [
     "Mantener la carpeta student-starter/ como una subcarpeta anidada.",
