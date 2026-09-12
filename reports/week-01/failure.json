@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "week": 1,
+  "mode": "evidence",
+  "commitSha": "c638481a610039ab8b83fb5a01b6e7da719b4a1a",
+  "evaluatedAt": "2026-09-07T03:44:29.551876+00:00",
+  "status": "fail",
+  "checks": [
+    {
+      "id": "base_files",
+      "status": "pass",
+      "detail": "missing=[]"
+    },
+    {
+      "id": "react_native_profile",
+      "status": "pass",
+      "detail": "missing packages=[]"
+    },
+    {
+      "id": "toolchain_scripts",
+      "status": "pass",
+      "detail": "missing scripts=[]"
+    },
+    {
+      "id": "workflow_integrity",
+      "status": "pass",
+      "detail": "bypass markers=[]"
+    },
+    {
+      "id": "secret_scan",
+      "status": "pass",
+      "detail": "hits=[]"
+    },
+    {
+      "id": "required_evidence",
+      "status": "pass",
+      "detail": "missing/empty=[]"
+    },
+    {
+      "id": "schema:reports/week-01/baseline.json",
+      "status": "pass",
+      "detail": "2 checks indexed, 1 boundary/failure; evidence-only commit; invalid changes=[]"
+    },
+    {
+      "id": "schema:evidence/week-01/engineering.json",
+      "status": "pass",
+      "detail": "decision evidence is substantive and reproducible; evidence-only commit; invalid changes=[]"
+    },
+    {
+      "id": "schema:evidence/week-01/individual.json",
+      "status": "pass",
+      "detail": "three individual evidence records found"
+    },
+    {
+      "id": "frozen_sha",
+      "status": "fail",
+      "detail": "tag=week-01-final tagSha=fatal: ambiguous argument 'week-01-final': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]' head=c638481a610039ab8b83fb5a01b6e7da719b4a1a"
+    }
+  ]
+}

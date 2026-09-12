@@ -1,36 +1,45 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+/**
+ * App.tsx — Punto de entrada de CampusOps
+ *
+ * La inyección de dependencias ocurre aquí: App crea el repositorio concreto
+ * (IncidenciaMemoryRepo) y lo pasa a las pantallas de UI.
+ * Las pantallas NUNCA importan directamente desde infrastructure/.
+ */
+
+import { useState } from 'react';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
-import { getBackendHealth } from './src/api/courseBackend';
+import { IncidenciaMemoryRepo } from './src/infrastructure/memory/IncidenciaMemoryRepo';
+import { ListaIncidencias } from './src/ui/screens/ListaIncidencias';
+import { DetalleIncidencia } from './src/ui/screens/DetalleIncidencia';
+
+// Inyección de dependencias: se crea la implementación concreta aquí
+// y se pasa como contrato a las pantallas de UI.
+const repository = new IncidenciaMemoryRepo();
 
 export default function App() {
-  const [status, setStatus] = useState<'checking' | 'available' | 'offline'>('checking');
-
-  useEffect(() => {
-    let active = true;
-    getBackendHealth()
-      .then(() => active && setStatus('available'))
-      .catch(() => active && setStatus('offline'));
-    return () => {
-      active = false;
-    };
-  }, []);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   return (
-    <View style={styles.screen}>
-      <View accessibilityRole="summary" style={styles.card}>
-        <Text style={styles.title}>CampusOps</Text>
-        <Text>Incidencias del campus · entorno académico ficticio</Text>
-        <Text testID="backend-status">Backend: {status}</Text>
-      </View>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
-    </View>
+      {selectedId ? (
+        <DetalleIncidencia
+          repository={repository}
+          incidenciaId={selectedId}
+          onBack={() => setSelectedId(null)}
+        />
+      ) : (
+        <ListaIncidencias
+          repository={repository}
+          onSelectIncidencia={setSelectedId}
+        />
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, justifyContent: 'center', padding: 24 },
-  card: { gap: 12, padding: 20 },
-  title: { fontSize: 24, fontWeight: '700' },
+  container: { flex: 1, backgroundColor: '#F5F5F5' },
 });

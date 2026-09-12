@@ -1,3 +1,9 @@
 # CampusOps — instalación del paquete semanal
 
-Copia el contenido de esta carpeta sobre la raíz del repositorio del equipo, sin borrar el historial ni los archivos existentes. Después ejecuta los tres targets de la semana 01 indicados en `docs/assignments/week-01.md`.
+Copia el contenido de cada carpeta semanal sobre la raíz del repositorio del equipo, combinando carpetas e incluyendo `.github`. No borres el historial ni trabajo previo. No reinicies el proyecto desde el starter. Revisa los conflictos antes de sobrescribir archivos propios.
+
+## Semana 1
+Ejecuta los targets indicados en `docs/assignments/week-01.md`.
+
+## Semana 2
+Lee `docs/assignments/week-02.md` y la rúbrica `docs/assignments/week-02-rubric.md`. La preparación, los comandos y el orden de entrega están en `docs/assignments/week-02-repository.md`. La comprobación final de evidencias se ejecuta después de crear la etiqueta local.
