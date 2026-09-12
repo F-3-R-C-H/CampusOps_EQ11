@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "week": 2,
+  "teamId": "EQ11",
+  "members": [
+    {
+      "studentId": "3523110683",
+      "commitShas": [
+        "6dbc6f1077f32430364e017fbea9c4b7dfe77c1e"
+      ],
+      "files": [
+        "docs/adr/ADR-001-architecture.md",
+        "docs/architecture.mmd",
+        "src/domain/models/Incidencia.ts",
+        "src/domain/ports/IIncidenciaRepository.ts",
+        "src/application/usecases/GetIncidencias.ts",
+        "src/infrastructure/memory/IncidenciaMemoryRepo.ts",
+        "src/ui/screens/ListaIncidencias.tsx",
+        "src/ui/screens/DetalleIncidencia.tsx",
+        "App.tsx",
+        "reports/week-02/dependencies.json",
+        "evidence/week-02/engineering.json"
+      ],
+      "tests": [
+        "course-tests/public/week-02.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Las pruebas públicas de la semana 02 pasarán porque el diagrama Mermaid contiene los cuatro nodos requeridos (ui, application, domain, infrastructure), no existe arista directa ui→infrastructure y el ADR-001 contiene las palabras clave 'alternativa' y 'tradeoff'.",
+      "command": "npx jest course-tests/public/week-02.test.ts --no-coverage",
+      "observedResult": "PASS: 3 pruebas exitosas - arquitectura.mmd tiene los 4 nodos, sin arista ui→infrastructure directa, ADR-001 contiene alternativa y tradeoff",
+      "explanation": "Implementé el esqueleto de Clean Architecture con cuatro capas explícitas y sus reglas de dependencia. El dominio es puro (sin imports externos), Application consume el puerto IIncidenciaRepository, Infrastructure lo implementa con datos en memoria, y UI inyecta el repositorio vía props desde App.tsx como raíz de composición. El fallo controlado AC-03 documentado en reports/week-02/dependencies.json demuestra que una importación directa UI→Infrastructure es detectable y reparable."
+    },
+    {
+      "studentId": "3523110097",
+      "commitShas": [
+        "COMPLETAR_SHA_DE_40_CHARS_COMMIT_DANNA"
+      ],
+      "files": [
+        "docs/adr/ADR-002-tech-stack.md",
+        "docs/adr/ADR-003-data-strategy.md",
+        "docs/adr/ADR-004-folder-structure.md"
+      ],
+      "tests": [],
+      "reviews": [
+        "docs/adr/ADR-001-architecture.md"
+      ],
+      "prediction": "COMPLETAR: qué esperas que pase con el comando que ejecutaste",
+      "command": "COMPLETAR: el comando que ejecutaste para verificar tu trabajo",
+      "observedResult": "COMPLETAR: qué resultado observaste al ejecutar el comando",
+      "explanation": "COMPLETAR: explicación de tu contribución esta semana (mínimo 2 oraciones sustantivas)"
+    },
+    {
+      "studentId": "3523110858",
+      "commitShas": [
+        "COMPLETAR_SHA_DE_40_CHARS_COMMIT_TONANTZIN"
+      ],
+      "files": [
+        "docs/architecture.mmd"
+      ],
+      "tests": [],
+      "reviews": [
+        "docs/adr/ADR-001-architecture.md",
+        "docs/architecture.mmd"
+      ],
+      "prediction": "COMPLETAR: qué esperas que pase con el comando que ejecutaste",
+      "command": "COMPLETAR: el comando que ejecutaste para verificar tu trabajo",
+      "observedResult": "COMPLETAR: qué resultado observaste al ejecutar el comando",
+      "explanation": "COMPLETAR: explicación de tu contribución esta semana (mínimo 2 oraciones sustantivas)"
+    }
+  ]
+}
