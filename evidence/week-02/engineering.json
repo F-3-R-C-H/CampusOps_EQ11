@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "week": 2,
+  "commitSha": "6dbc6f1077f32430364e017fbea9c4b7dfe77c1e",
+  "decision": "Se adoptó Clean Architecture con cuatro capas explícitas (UI → Application → Domain ← Infrastructure) como patrón arquitectónico de CampusOps. La regla de dependencia garantiza que el dominio no conoce detalles de implementación: UI llama casos de uso en Application, que operan sobre puertos definidos en Domain; Infrastructure implementa esos puertos. La inyección de dependencias en la raíz de composición (App.tsx) permite sustituir el repositorio en memoria por uno real sin tocar capas internas.",
+  "alternatives": [
+    "Feature Modules: organizar el código por funcionalidad (incidencias/, usuarios/, etc.) con cada módulo conteniendo su propia UI, lógica y datos. Ventaja: cohesión por dominio. Desventaja: fácil acoplamiento cruzado entre módulos y difícil enforcement de reglas de dependencia.",
+    "MVC plano (Model-View-Controller): estructura tradicional con carpetas model/, view/, controller/ al mismo nivel. Ventaja: familiaridad y rapidez inicial. Desventaja: el controlador termina acoplando UI con persistencia, violando el aislamiento del dominio y dificultando pruebas unitarias del negocio."
+  ],
+  "tradeoff": "Beneficio: el aislamiento del dominio permite probar casos de uso sin UI ni base de datos; la inyección de dependencias en App.tsx hace trivial cambiar IncidenciaMemoryRepo por un repositorio HTTP o SQLite. Costo: mayor número de archivos y abstracciones iniciales (puerto, caso de uso, modelo puro) que ralentizan el arranque. Para un equipo de 3 personas con 8 semanas, esta inversión se amortiza en las semanas 3-5 cuando se integren persistencia real y autenticación.",
+  "requirementIds": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05"
+  ],
+  "verification": [
+    {
+      "command": "npx jest course-tests/public/week-02.test.ts --no-coverage",
+      "result": "pass",
+      "evidence": "Todas las pruebas públicas de la semana 02 pasan: docs/architecture.mmd contiene los nodos 'ui', 'application', 'domain', 'infrastructure'; no existe arista directa ui→infrastructure; ADR-001-architecture.md contiene 'alternativa' y 'tradeoff'."
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "result": "pass",
+      "evidence": "Compilación TypeScript sin errores (0 errors). Las cuatro capas se resuelven correctamente. GetIncidencias importa desde domain/ con rutas ../../domain/; ListaIncidencias no importa desde infrastructure/."
+    },
+    {
+      "command": "npx madge --extensions ts,tsx src/ui/screens/ListaIncidencias.tsx",
+      "result": "pass",
+      "evidence": "Después de revertir el fallo controlado AC-03, madge confirma que ListaIncidencias.tsx solo depende de application/usecases/GetIncidencias.ts, domain/models/Incidencia.ts y domain/ports/IIncidenciaRepository.ts. Ninguna referencia a infrastructure/."
+    }
+  ]
+}

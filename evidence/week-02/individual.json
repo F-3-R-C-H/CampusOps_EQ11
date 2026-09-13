@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "week": 2,
+  "teamId": "EQ11",
+  "members": [
+    {
+      "studentId": "3523110683",
+      "commitShas": [
+        "6dbc6f1077f32430364e017fbea9c4b7dfe77c1e"
+      ],
+      "files": [
+        "docs/adr/ADR-001-architecture.md",
+        "docs/architecture.mmd",
+        "src/domain/models/Incidencia.ts",
+        "src/domain/ports/IIncidenciaRepository.ts",
+        "src/application/usecases/GetIncidencias.ts",
+        "src/infrastructure/memory/IncidenciaMemoryRepo.ts",
+        "src/ui/screens/ListaIncidencias.tsx",
+        "src/ui/screens/DetalleIncidencia.tsx",
+        "App.tsx",
+        "reports/week-02/dependencies.json",
+        "evidence/week-02/engineering.json"
+      ],
+      "tests": [
+        "course-tests/public/week-02.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Las pruebas públicas de la semana 02 pasarán porque el diagrama Mermaid contiene los cuatro nodos requeridos (ui, application, domain, infrastructure), no existe arista directa ui→infrastructure y el ADR-001 contiene las palabras clave 'alternativa' y 'tradeoff'.",
+      "command": "npx jest course-tests/public/week-02.test.ts --no-coverage",
+      "observedResult": "PASS: 3 pruebas exitosas - arquitectura.mmd tiene los 4 nodos, sin arista ui→infrastructure directa, ADR-001 contiene alternativa y tradeoff",
+      "explanation": "Implementé el esqueleto de Clean Architecture con cuatro capas explícitas y sus reglas de dependencia. El dominio es puro (sin imports externos), Application consume el puerto IIncidenciaRepository, Infrastructure lo implementa con datos en memoria, y UI inyecta el repositorio vía props desde App.tsx como raíz de composición. El fallo controlado AC-03 documentado en reports/week-02/dependencies.json demuestra que una importación directa UI→Infrastructure es detectable y reparable."
+    },
+    {
+      "studentId": "3523110097",
+      "commitShas": [
+        "53c60bd9db4db6fb86946d5021336d8fa3886c5a",
+        "42aff146dd88ab961d89b2b3b02e44c13477092d",
+        "f582bfd3a1d812b3e2bc11d175e64b34990a978f"
+      ],
+      "files": [
+        "docs/adr/ADR-002-tech-stack.md",
+        "docs/adr/ADR-003-data-strategy.md",
+        "docs/adr/ADR-004-folder-structure.md"
+      ],
+      "tests": [],
+      "reviews": [
+        "docs/adr/ADR-001-architecture.md"
+      ],
+      "prediction": "La validación de evidencias de la semana 02 pasará porque los tres ADR-002, ADR-003 y ADR-004 existen en docs/adr/ con los nombres declarados en files y documentan decisiones específicas de CampusOps alineadas con ADR-001.",
+      "command": "ls docs/adr && git log --oneline -3",
+      "observedResult": "docs/adr contiene ADR-001-architecture.md, ADR-002-tech-stack.md, ADR-003-data-strategy.md y ADR-004-folder-structure.md; git log muestra los tres commits de documentación (add tech stack ADR, add data strategy ADR, document folder structure and dependency rules).",
+      "explanation": "Documenté tres decisiones de la Semana 2 en docs/adr/: ADR-002 fija y justifica el stack React Native + Expo + TypeScript como requisito vinculante del curso; ADR-003 documenta la estrategia de datos sintéticos mediante un repositorio en memoria (IncidenciaMemoryRepo) que implementa el contrato IIncidenciaRepository definido en Domain y se inyecta desde App.tsx; ADR-004 documenta la estructura por capas de src/ y las reglas de dependencias/imports, incluida la regla prohibida UI -> Infrastructure y sus excepciones. No modifiqué código: verifiqué la arquitectura inspeccionando los imports reales de cada capa y revisé ADR-001 para mantener el contenido coherente con el diagrama."
+    },
+    {
+      "studentId": "3523110858",
+      "commitShas": [
+        "COMPLETAR_SHA_DE_40_CHARS_COMMIT_TONANTZIN"
+      ],
+      "files": [
+        "docs/architecture.mmd"
+      ],
+      "tests": [],
+      "reviews": [
+        "docs/adr/ADR-001-architecture.md",
+        "docs/architecture.mmd"
+      ],
+      "prediction": "COMPLETAR: qué esperas que pase con el comando que ejecutaste",
+      "command": "COMPLETAR: el comando que ejecutaste para verificar tu trabajo",
+      "observedResult": "COMPLETAR: qué resultado observaste al ejecutar el comando",
+      "explanation": "COMPLETAR: explicación de tu contribución esta semana (mínimo 2 oraciones sustantivas)"
+    }
+  ]
+}

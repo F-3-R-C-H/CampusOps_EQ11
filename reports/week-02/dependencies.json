@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "week": 2,
+  "commitSha": "6dbc6f1077f32430364e017fbea9c4b7dfe77c1e",
+  "generatedAt": "2026-09-12T12:12:00Z",
+  "checks": [
+    {
+      "id": "AC-03-before-forbidden-import",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "npx madge --extensions ts,tsx src/ui/screens/ListaIncidencias.tsx",
+      "evidence": "ListaIncidencias.tsx → ../../infrastructure/memory/IncidenciaMemoryRepo.ts detectado. Violación AC-03: importación directa de capa UI hacia capa Infrastructure sin pasar por Application ni Domain. Salida madge: 'ListaIncidencias.tsx -> ../../infrastructure/memory/IncidenciaMemoryRepo.ts'. Esta importación acopla la pantalla directamente a un detalle de implementación, rompiendo el aislamiento del dominio."
+    },
+    {
+      "id": "AC-03-after-fix-clean-architecture",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npx madge --extensions ts,tsx src/ui/screens/ListaIncidencias.tsx",
+      "evidence": "Tras revertir la importación prohibida, madge muestra que ListaIncidencias.tsx solo depende de: application/usecases/GetIncidencias.ts, domain/models/Incidencia.ts y domain/ports/IIncidenciaRepository.ts. Ninguna referencia directa a infrastructure/. La arquitectura limpia está respetada: UI → Application → Domain ← Infrastructure."
+    },
+    {
+      "id": "AC-03-typescript-compile-after-fix",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npx tsc --noEmit",
+      "evidence": "Compilación TypeScript sin errores (exit code 0) después de revertir la violación. Ningún archivo src/ui/ importa rutas que contengan 'infrastructure'."
+    }
+  ]
+}

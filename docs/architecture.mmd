@@ -1,0 +1,61 @@
+%% CampusOps — Diagrama de Arquitectura (ADR-001)
+%% Capas: UI → Application → Domain ← Infrastructure
+%% Regla: UI nunca depende directamente de Infrastructure
+
+flowchart TD
+  subgraph UI["UI (Presentación)"]
+    ListaScreen["ListaIncidencias Screen"]
+    DetalleScreen["DetalleIncidencia Screen"]
+  end
+
+  subgraph Application["Application (Casos de Uso)"]
+    GetIncidencias["GetIncidencias UseCase"]
+    GetIncidenciaById["GetIncidenciaById UseCase"]
+  end
+
+  subgraph Domain["Domain (Modelos y Contratos)"]
+    Incidencia["Incidencia Model"]
+    IRepo["IIncidenciaRepository Port"]
+  end
+
+  subgraph Infrastructure["Infrastructure (Implementaciones)"]
+    MemoryRepo["IncidenciaMemoryRepo"]
+    direction TB
+    FutureAPI["API REST Adapter (Semana 5)"]
+    FutureStorage["Local Storage Adapter (Semana 8)"]
+    FutureGeo["Geocoding Adapter (Semana 9)"]
+  end
+
+  %% Dependencias permitidas
+  ListaScreen --> GetIncidencias
+  DetalleScreen --> GetIncidenciaById
+  GetIncidencias --> IRepo
+  GetIncidenciaById --> IRepo
+  IRepo -.- Incidencia
+
+  %% Infrastructure implementa los contratos del Domain
+  MemoryRepo -.->|implements| IRepo
+  FutureAPI -.->|implements| IRepo
+  FutureStorage -.->|future| IRepo
+  FutureGeo -.->|future| Domain
+
+  %% Perfiles de usuario (acceden a través de la UI)
+  Ciudadano["👤 Ciudadano (Reporter)"] --> UI
+  Tecnico["🔧 Técnico (Technician)"] --> UI
+  Coordinador["📋 Coordinador (Coordinator)"] --> UI
+
+  %% Responsabilidades futuras localizadas
+  subgraph Domain
+    Sesion["Sesión (Semana 6)"]
+    Persistencia["Persistencia (Semana 8)"]
+    Ubicacion["Ubicación (Semana 9)"]
+  end
+
+  %% Leyenda
+  classDef current fill:#4CAF50,color:#fff,stroke:#388E3C
+  classDef future fill:#9E9E9E,color:#fff,stroke:#616161
+  classDef actor fill:#2196F3,color:#fff,stroke:#1565C0
+
+  class ListaScreen,DetalleScreen,GetIncidencias,GetIncidenciaById,Incidencia,IRepo,MemoryRepo current
+  class FutureAPI,FutureStorage,FutureGeo,Sesion,Persistencia,Ubicacion future
+  class Ciudadano,Tecnico,Coordinador actor
