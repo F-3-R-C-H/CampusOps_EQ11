@@ -33,7 +33,9 @@
     {
       "studentId": "3523110097",
       "commitShas": [
-        "COMPLETAR_SHA_DE_40_CHARS_COMMIT_DANNA"
+        "53c60bd9db4db6fb86946d5021336d8fa3886c5a",
+        "42aff146dd88ab961d89b2b3b02e44c13477092d",
+        "f582bfd3a1d812b3e2bc11d175e64b34990a978f"
       ],
       "files": [
         "docs/adr/ADR-002-tech-stack.md",
@@ -44,10 +46,10 @@
       "reviews": [
         "docs/adr/ADR-001-architecture.md"
       ],
-      "prediction": "COMPLETAR: qué esperas que pase con el comando que ejecutaste",
-      "command": "COMPLETAR: el comando que ejecutaste para verificar tu trabajo",
-      "observedResult": "COMPLETAR: qué resultado observaste al ejecutar el comando",
-      "explanation": "COMPLETAR: explicación de tu contribución esta semana (mínimo 2 oraciones sustantivas)"
+      "prediction": "La validación de evidencias de la semana 02 pasará porque los tres ADR-002, ADR-003 y ADR-004 existen en docs/adr/ con los nombres declarados en files y documentan decisiones específicas de CampusOps alineadas con ADR-001.",
+      "command": "ls docs/adr && git log --oneline -3",
+      "observedResult": "docs/adr contiene ADR-001-architecture.md, ADR-002-tech-stack.md, ADR-003-data-strategy.md y ADR-004-folder-structure.md; git log muestra los tres commits de documentación (add tech stack ADR, add data strategy ADR, document folder structure and dependency rules).",
+      "explanation": "Documenté tres decisiones de la Semana 2 en docs/adr/: ADR-002 fija y justifica el stack React Native + Expo + TypeScript como requisito vinculante del curso; ADR-003 documenta la estrategia de datos sintéticos mediante un repositorio en memoria (IncidenciaMemoryRepo) que implementa el contrato IIncidenciaRepository definido en Domain y se inyecta desde App.tsx; ADR-004 documenta la estructura por capas de src/ y las reglas de dependencias/imports, incluida la regla prohibida UI -> Infrastructure y sus excepciones. No modifiqué código: verifiqué la arquitectura inspeccionando los imports reales de cada capa y revisé ADR-001 para mantener el contenido coherente con el diagrama."
     },
     {
       "studentId": "3523110858",
