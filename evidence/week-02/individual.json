@@ -52,27 +52,26 @@
       "explanation": "Documenté tres decisiones de la Semana 2 en docs/adr/: ADR-002 fija y justifica el stack React Native + Expo + TypeScript como requisito vinculante del curso; ADR-003 documenta la estrategia de datos sintéticos mediante un repositorio en memoria (IncidenciaMemoryRepo) que implementa el contrato IIncidenciaRepository definido en Domain y se inyecta desde App.tsx; ADR-004 documenta la estructura por capas de src/ y las reglas de dependencias/imports, incluida la regla prohibida UI -> Infrastructure y sus excepciones. No modifiqué código: verifiqué la arquitectura inspeccionando los imports reales de cada capa y revisé ADR-001 para mantener el contenido coherente con el diagrama."
     },
     {
-      
-      "studentId": "3523110858",
-      "commitShas": [
-      "PENDIENTE"
-      ],
-      "files": [
-      "docs/architecture.mmd",
-      "evidence/week-02/individual.json"
-      ],
-      "tests": [
-      "npx jest course-tests/public/week-02.test.ts --no-coverage"
-      ],
-      "reviews": [
-      "docs/adr/ADR-001-architecture.md",
-      "docs/architecture.mmd",
-      "reports/week-02/dependencies.json"
-      ],
-      "prediction": "Espero que la prueba de arquitectura confirme que existen las cuatro capas y que no exista una dependencia directa entre UI e Infrastructure.",
-      "command": "npx jest course-tests/public/week-02.test.ts --no-coverage",
-      "observedResult": "La prueba de arquitectura debe finalizar correctamente, confirmando las capas UI, Application, Domain e Infrastructure y la ausencia de una dependencia directa UI hacia Infrastructure.",
-      "explanation": "Extendí y revisé el diagrama de arquitectura para representar los tres perfiles de usuario y las responsabilidades futuras del sistema. También revisé la coherencia entre el ADR-001, el diagrama y las evidencias de dependencias para mantener la regla de que UI depende de Application y no directamente de Infrastructure."
-      }
+  "studentId": "3523110858",
+  "commitShas": [
+    "8ebd56b6d8108d218107a565fff9481948bed7fb",
+    "67e0237bb25fc9b3ec0560262ae3b053a8b388e8"
+  ],
+  "files": [
+    "docs/architecture.mmd"
+  ],
+  "tests": [
+    "course-tests/public/week-02.test.ts"
+  ],
+  "reviews": [
+    "docs/adr/ADR-001-architecture.md",
+    "docs/adr/ADR-004-folder-structure.md",
+    "reports/week-02/dependencies.json"
+  ],
+  "prediction": "Las pruebas públicas de la semana 02 seguirán pasando después de fusionar el nodo GetIncidenciaById en GetIncidencias y agregar la marca explícita de prohibición UI-Infrastructure, porque el test solo exige la presencia de los 4 nodos de capa y la ausencia de una arista con flecha literal ui-->infrastructure; la nueva arista -.-x no usa ese patrón.",
+  "command": "npx jest course-tests/public/week-02.test.ts --no-coverage && npx madge --extensions ts,tsx src/ui/screens/ListaIncidencias.tsx && npx madge --extensions ts,tsx src/ui/screens/DetalleIncidencia.tsx && npx tsc --noEmit",
+  "observedResult": "PASS: la prueba pública de semana 02 pasa (1/1). madge confirma que ambas pantallas de UI solo importan application/usecases/GetIncidencias.ts, domain/models/Incidencia.ts y domain/ports/IIncidenciaRepository.ts; ninguna referencia a infrastructure/. tsc --noEmit compila sin errores.",
+  "explanation": "Audité la coherencia entre ADR-001, ADR-004, docs/architecture.mmd y el código real de src/. Encontré y corregí una incoherencia: el diagrama declaraba un caso de uso GetIncidenciaById separado que no existe en el código (la clase real GetIncidencias expone execute() y executeById() como métodos de una sola clase); fusioné ambos nodos en uno solo para que el diagrama refleje exactamente la implementación, tal como lo dejó anotado ADR-004. También agregué una marca visual explícita de la regla prohibida UI -> Infrastructure (antes solo se cumplía por ausencia de una arista, sin quedar señalada en el propio diagrama), usando una línea punteada terminada en cruz con la etiqueta 'prohibido', sin afectar el resultado de la prueba pública. Verifiqué con madge y tsc --noEmit que ninguna pantalla de UI importa infrastructure/ directamente, confirmando que el código real respalda tanto el diagrama corregido como el caso de falla documentado en reports/week-02/dependencies.json."
+}
   ]
 }
