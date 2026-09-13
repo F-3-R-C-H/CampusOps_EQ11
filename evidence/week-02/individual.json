@@ -52,22 +52,27 @@
       "explanation": "Documenté tres decisiones de la Semana 2 en docs/adr/: ADR-002 fija y justifica el stack React Native + Expo + TypeScript como requisito vinculante del curso; ADR-003 documenta la estrategia de datos sintéticos mediante un repositorio en memoria (IncidenciaMemoryRepo) que implementa el contrato IIncidenciaRepository definido en Domain y se inyecta desde App.tsx; ADR-004 documenta la estructura por capas de src/ y las reglas de dependencias/imports, incluida la regla prohibida UI -> Infrastructure y sus excepciones. No modifiqué código: verifiqué la arquitectura inspeccionando los imports reales de cada capa y revisé ADR-001 para mantener el contenido coherente con el diagrama."
     },
     {
+      
       "studentId": "3523110858",
       "commitShas": [
-        "COMPLETAR_SHA_DE_40_CHARS_COMMIT_TONANTZIN"
+      "PENDIENTE"
       ],
       "files": [
-        "docs/architecture.mmd"
+      "docs/architecture.mmd",
+      "evidence/week-02/individual.json"
       ],
-      "tests": [],
+      "tests": [
+      "npx jest course-tests/public/week-02.test.ts --no-coverage"
+      ],
       "reviews": [
-        "docs/adr/ADR-001-architecture.md",
-        "docs/architecture.mmd"
+      "docs/adr/ADR-001-architecture.md",
+      "docs/architecture.mmd",
+      "reports/week-02/dependencies.json"
       ],
-      "prediction": "COMPLETAR: qué esperas que pase con el comando que ejecutaste",
-      "command": "COMPLETAR: el comando que ejecutaste para verificar tu trabajo",
-      "observedResult": "COMPLETAR: qué resultado observaste al ejecutar el comando",
-      "explanation": "COMPLETAR: explicación de tu contribución esta semana (mínimo 2 oraciones sustantivas)"
-    }
+      "prediction": "Espero que la prueba de arquitectura confirme que existen las cuatro capas y que no exista una dependencia directa entre UI e Infrastructure.",
+      "command": "npx jest course-tests/public/week-02.test.ts --no-coverage",
+      "observedResult": "La prueba de arquitectura debe finalizar correctamente, confirmando las capas UI, Application, Domain e Infrastructure y la ausencia de una dependencia directa UI hacia Infrastructure.",
+      "explanation": "Extendí y revisé el diagrama de arquitectura para representar los tres perfiles de usuario y las responsabilidades futuras del sistema. También revisé la coherencia entre el ADR-001, el diagrama y las evidencias de dependencias para mantener la regla de que UI depende de Application y no directamente de Infrastructure."
+      }
   ]
 }
