@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 2,
-  "commitSha": "24f44b3329d5fdaf10868e5d86eda69f8046b3fe",
+  "commitSha": "c0847bdf343b16a054ceb09a1d265d76c7255d36",
   "decision": "Se adoptó Clean Architecture con cuatro capas explícitas (UI → Application → Domain ← Infrastructure) como patrón arquitectónico de CampusOps. La regla de dependencia garantiza que el dominio no conoce detalles de implementación: UI llama casos de uso en Application, que operan sobre puertos definidos en Domain; Infrastructure implementa esos puertos. La inyección de dependencias en la raíz de composición (App.tsx) permite sustituir el repositorio en memoria por uno real sin tocar capas internas.",
   "alternatives": [
     "Feature Modules: organizar el código por funcionalidad (incidencias/, usuarios/, etc.) con cada módulo conteniendo su propia UI, lógica y datos. Ventaja: cohesión por dominio. Desventaja: fácil acoplamiento cruzado entre módulos y difícil enforcement de reglas de dependencia.",
