@@ -44,22 +44,22 @@ interface Props {
 }
 
 export function ListaIncidencias({ repository, onSelectIncidencia }: Props) {
-  const [incidencias, setIncidencias] = useState<Incidencia[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [incidencias, setIncidencias] = useState<Incidencia[] | null>(null);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
     const useCase = new GetIncidencias(repository);
-    const data = await useCase.execute();
-    setIncidencias(data);
-    setLoading(false);
+    return useCase.execute();
   }, [repository]);
 
   useEffect(() => {
-    loadData();
+    let cancelled = false;
+    loadData().then((data) => {
+      if (!cancelled) setIncidencias(data);
+    });
+    return () => { cancelled = true; };
   }, [loadData]);
 
-  if (loading) {
+  if (incidencias === null) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#1976D2" />
