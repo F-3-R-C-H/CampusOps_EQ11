@@ -6,10 +6,11 @@
  * Las pantallas NUNCA importan directamente desde infrastructure/.
  */
 
-import { useState } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
+import { getBackendHealth } from './src/api/courseBackend';
 import { IncidenciaMemoryRepo } from './src/infrastructure/memory/IncidenciaMemoryRepo';
 import { ListaIncidencias } from './src/ui/screens/ListaIncidencias';
 import { DetalleIncidencia } from './src/ui/screens/DetalleIncidencia';
@@ -20,10 +21,23 @@ const repository = new IncidenciaMemoryRepo();
 
 export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'available' | 'offline'>('checking');
+
+  useEffect(() => {
+    let active = true;
+    getBackendHealth()
+      .then(() => active && setBackendStatus('available'))
+      .catch(() => active && setBackendStatus('offline'));
+    return () => { active = false; };
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
+      <View style={styles.header}>
+        <Text style={styles.title}>CampusOps</Text>
+        <Text testID="backend-status">Backend: {backendStatus}</Text>
+      </View>
       {selectedId ? (
         <DetalleIncidencia
           repository={repository}
@@ -42,4 +56,6 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
+  header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 },
+  title: { fontSize: 24, fontWeight: '700', color: '#1976D2' },
 });
