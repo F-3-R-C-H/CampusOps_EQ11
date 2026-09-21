@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "week": 2,
+  "mode": "evidence",
+  "commitSha": "18543b27411eac0cb348dbb3a80b6d93689b8e6a",
+  "evaluatedAt": "2026-09-15T06:22:27.508227+00:00",
+  "status": "fail",
+  "checks": [
+    {
+      "id": "base_files",
+      "status": "pass",
+      "detail": "missing=[]"
+    },
+    {
+      "id": "react_native_profile",
+      "status": "pass",
+      "detail": "missing packages=[]"
+    },
+    {
+      "id": "toolchain_scripts",
+      "status": "pass",
+      "detail": "missing scripts=[]"
+    },
+    {
+      "id": "workflow_integrity",
+      "status": "pass",
+      "detail": "bypass markers=[]"
+    },
+    {
+      "id": "secret_scan",
+      "status": "pass",
+      "detail": "hits=[]"
+    },
+    {
+      "id": "required_evidence",
+      "status": "pass",
+      "detail": "missing/empty=[]"
+    },
+    {
+      "id": "schema:reports/week-02/dependencies.json",
+      "status": "fail",
+      "detail": "evidence-only commit; invalid changes=['.github/workflows/week-02-arquitectura-justificable-feedback.yml', 'App.tsx', 'course-contracts.json', 'src/ui/screens/ListaIncidencias.tsx']"
+    },
+    {
+      "id": "schema:evidence/week-02/engineering.json",
+      "status": "fail",
+      "detail": "evidence-only commit; invalid changes=['.github/workflows/week-02-arquitectura-justificable-feedback.yml', 'App.tsx', 'course-contracts.json', 'src/ui/screens/ListaIncidencias.tsx']"
+    },
+    {
+      "id": "schema:evidence/week-02/individual.json",
+      "status": "pass",
+      "detail": "three individual evidence records found"
+    },
+    {
+      "id": "frozen_sha",
+      "status": "pass",
+      "detail": "tag=week-02-final tagSha=18543b27411eac0cb348dbb3a80b6d93689b8e6a head=18543b27411eac0cb348dbb3a80b6d93689b8e6a"
+    }
+  ]
+}
