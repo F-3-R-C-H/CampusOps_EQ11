@@ -71,3 +71,18 @@ El pipeline de GitHub Actions falla automáticamente si detecta cadenas que coin
 
 **Riesgo residual:**
 Secretos que empleen estructuras o patrones completamente desconocidos para las reglas de auditoría.
+
+### AMENAZA-05 — Falsificación de ubicación geográfica [MEDIA]
+
+**Descripción:**
+Un técnico reporta haber atendido una incidencia alterando las coordenadas GPS para simular presencia física en el campus.
+
+**Control:**
+Validación de rango de coordenadas dentro del perímetro del campus universitario y verificación de marcas de tiempo del sistema.
+
+**Verificación:**
+Prueba unitaria: envío de coordenadas fuera de los límites de geocerca del campus genera estado de advertencia e inspección manual.
+
+**Riesgo residual:**
+Manipulación avanzada a nivel de sistema operativo en dispositivos rooteados.
+
