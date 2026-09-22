@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "week": 3,
+  "teamId": "EQ11",
+  "members": [
+    {
+      "studentId": "3523110683",
+      "commitShas": [
+        "5cc79b3f42f6b32e3408b6af19b2ef45baabf70e",
+        "cb8ff7346371678f760a164417675772c04d39a1"
+      ],
+      "files": [
+        ".github/workflows/week-03-ci-amenazas-feedback.yml",
+        "reports/week-03/security.json",
+        "evidence/week-03/engineering.json",
+        "docs/threat-model.md"
+      ],
+      "tests": [
+        "course-tests/public/week-03.test.ts"
+      ],
+      "reviews": [
+        "docs/threat-model.md"
+      ],
+      "prediction": "Las pruebas públicas de la semana 03 pasarán porque el workflow contiene actions/setup-node@v4, node-version 22, make setup delegado al Makefile con npm ci, verify-week-03, no tiene continue-on-error ni passWithNoTests, y tiene permissions contents:read. El threat-model.md contiene activo, amenaza, control y verificación en minúsculas.",
+      "command": "npx jest course-tests/public/week-03.test.ts --no-coverage",
+      "observedResult": "PASS: 2 pruebas exitosas — feedback workflow preserves critical checks and least privilege (42 ms) y threat model links assets, threats, controls and verification (3 ms). Test Suites: 1 passed. Tests: 2 passed, 2 total.",
+      "explanation": "Integré el paquete inicial de la semana 03 desde el ZIP del profesor: copié el workflow YML, los tests públicos y la documentación de la rúbrica. Añadí fetch-tags: true, fetch-depth: 2 y ref al paso Checkout del workflow para corregir el bug conocido del evaluador del profesor que requiere inspeccionar el commit padre y los tags. Restauré el tag week-02-final a su commit correcto (724abe6) que pasa todas las comprobaciones. Revisé y resolví el conflicto del merge del PR de Tonantzin que agregó AMENAZA-05 al threat-model.md. Creé security.json con 4 checks reales incluyendo escenario failure de detección de credenciales ficticias, y engineering.json justificando la priorización de AMENAZA-04."
+    },
+    {
+      "studentId": "3523110097",
+      "commitShas": [
+        "36f6c44489cc9843ddc05547e7d76b4113f73776"
+      ],
+      "files": [
+        "docs/threat-model.md"
+      ],
+      "tests": [],
+      "reviews": [
+        "docs/threat-model.md"
+      ],
+      "prediction": "La prueba pública del threat model pasará porque el archivo docs/threat-model.md contiene las 4 palabras obligatorias en minúsculas: activo (en 'Activos a proteger'), amenaza (en 'Amenazas priorizadas'), control (en cada sección de Control), y verificación (en cada sección de Verificación).",
+      "command": "npx jest course-tests/public/week-03.test.ts --no-coverage",
+      "observedResult": "PASS: el test threat model links assets, threats, controls and verification confirma que docs/threat-model.md contiene las 4 palabras clave obligatorias.",
+      "explanation": "Redacté el modelo de amenazas inicial de CampusOps en docs/threat-model.md. Identifiqué 5 activos a proteger (sesiones JWT, fotografías, ubicaciones, asignaciones y registros de auditoría), definí 3 fronteras de confianza (app-backend, backend-BD, app-SO) y prioricé 4 amenazas con sus controles y verificaciones: AMENAZA-01 consulta de incidencias ajenas (control por token JWT), AMENAZA-02 alteración de asignaciones (validación de roles), AMENAZA-03 filtrado de datos sensibles en logs (sanitización), AMENAZA-04 exposición de credenciales (secret scan en CI)."
+    },
+    {
+      "studentId": "3523110858",
+      "commitShas": [
+        "6c3cd1299b5a122d69f682e93478cde5b682e31a"
+      ],
+      "files": [
+        "docs/threat-model.md",
+        ".github/workflows/week-03-ci-amenazas-feedback.yml"
+      ],
+      "tests": [],
+      "reviews": [
+        "docs/threat-model.md"
+      ],
+      "prediction": "El threat model seguirá pasando las pruebas públicas después de agregar AMENAZA-05 porque el test solo verifica la presencia de las 4 palabras clave (activo, amenaza, control, verificación) que ya estaban en el documento original de Danna. La nueva amenaza añade más contenido sin alterar las palabras existentes.",
+      "command": "npx jest course-tests/public/week-03.test.ts --no-coverage",
+      "observedResult": "PASS: 2 pruebas pasadas. El threat model mantiene las 4 palabras clave y el workflow conserva los checks obligatorios.",
+      "explanation": "Revisé el modelo de amenazas de Danna y aporté AMENAZA-05 sobre falsificación de ubicación geográfica (GPS spoofing), que es relevante para CampusOps porque los técnicos registran ubicaciones al atender incidencias en el campus. Propuse como control la validación de geocerca del perímetro universitario y marcas de tiempo del sistema, con prueba unitaria que detecta coordenadas fuera de rango. También sincronicé el workflow de CI desde main."
+    }
+  ]
+}

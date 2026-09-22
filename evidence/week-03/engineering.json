@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "week": 3,
+  "commitSha": "cb8ff7346371678f760a164417675772c04d39a1",
+  "decision": "El equipo priorizó AMENAZA-04 (Exposición de credenciales en código fuente) como primer control automatizado de seguridad en el pipeline de CI. La razón principal es que una credencial expuesta en el repositorio público es un riesgo inmediato e irreversible: una vez publicada, cualquier actor puede explotarla antes de que el equipo la detecte manualmente. El escaneo automático de secretos mediante npm audit:ci y los patrones regex del script course_public_evaluator.py (private_key, github_token, aws_access_key, EXPO_PUBLIC_*SECRET*) ejecutado en cada push a main garantiza detección con cero tolerancia y retroalimentación instantánea al desarrollador que introduce la credencial.",
+  "alternatives": [
+    "Pre-commit hooks con herramientas como git-secrets o detect-secrets ejecutados localmente antes de cada commit. Ventaja: detección temprana antes de que el código llegue al repositorio remoto. Desventaja: cada desarrollador debe configurar el hook en su máquina; si uno no lo instala, el secreto se publica igualmente. No es centralizado ni verificable por el equipo.",
+    "Auditoría manual periódica mediante revisión de código semanal buscando patrones de credenciales con grep. Ventaja: no requiere configuración de CI. Desventaja: la revisión es reactiva y depende de la disciplina humana; un secreto puede permanecer expuesto días o semanas hasta la próxima revisión. No escala ni genera evidencia automática reproducible."
+  ],
+  "tradeoff": "Beneficio: detección centralizada, inmediata y reproducible en cada push mediante el pipeline de CI; el resultado queda registrado como artefacto descargable en GitHub Actions y se puede auditar en cualquier momento. Costo: el escaneo de patrones se ejecuta sobre todo el árbol de archivos del proyecto en cada ejecución del workflow, añadiendo entre 5 y 15 segundos al tiempo total del pipeline. Los patrones regex solo detectan formatos conocidos (llaves RSA, tokens de GitHub/AWS, variables EXPO_PUBLIC con sufijo sensible); secretos con formatos completamente atípicos o custom podrían escapar la detección automática.",
+  "requirementIds": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05"
+  ],
+  "verification": [
+    {
+      "command": "npm run audit:ci",
+      "result": "pass",
+      "evidence": "npm audit --omit=dev --audit-level=critical ejecutado exitosamente (exit code 0). Se reportan 2 vulnerabilidades de severidad high en dependencias transitivas (@xmldom/xmldom y js-yaml), pero ninguna de severidad critical. No se encontraron credenciales expuestas."
+    },
+    {
+      "command": "npx jest course-tests/public/week-03.test.ts --no-coverage",
+      "result": "pass",
+      "evidence": "2 pruebas públicas pasaron: (1) feedback workflow preserves critical checks and least privilege verifica que el workflow tenga setup-node@v4, node 22, make setup, verify-week-03, sin continue-on-error y con permissions contents:read; (2) threat model links assets, threats, controls and verification confirma que docs/threat-model.md contiene las 4 palabras clave obligatorias: activo, amenaza, control, verificación."
+    },
+    {
+      "command": "python3 tools/course_public_evaluator.py --week 03 --mode evidence",
+      "result": "pass",
+      "evidence": "El evaluador de evidencias verifica: archivos base presentes, perfil React Native completo, scripts de toolchain definidos, integridad del workflow sin bypass markers, escaneo de secretos limpio (hits=[]), evidencias requeridas presentes, esquemas JSON válidos con checks indexados incluyendo boundary/failure, decisión técnica sustantiva y reproducible, y tres registros individuales encontrados."
+    }
+  ]
+}

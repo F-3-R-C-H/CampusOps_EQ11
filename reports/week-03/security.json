@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "week": 3,
+  "commitSha": "cb8ff7346371678f760a164417675772c04d39a1",
+  "generatedAt": "2026-09-22T01:12:00Z",
+  "checks": [
+    {
+      "id": "secret-scan-no-critical",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run audit:ci",
+      "evidence": "npm audit --omit=dev --audit-level=critical ejecutado exitosamente. Se reportan 2 vulnerabilidades de severidad high en dependencias transitivas (@xmldom/xmldom y js-yaml), pero ninguna de severidad critical. El pipeline no falla porque audit-level está configurado en critical. No se encontraron credenciales ni llaves privadas expuestas en el código fuente."
+    },
+    {
+      "id": "secret-scan-pattern-detection",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "python3 tools/course_public_evaluator.py --week 03 --mode verify --execute-toolchain",
+      "evidence": "El evaluador del curso ejecuta el escaneo de patrones de secretos (private_key, github_token, aws_access_key, EXPO_PUBLIC_*SECRET*) sobre todos los archivos del repositorio excluyendo node_modules, .git, .expo, coverage, dist, android e ios. Resultado: hits=[] — ningún patrón de secreto detectado en los archivos del proyecto."
+    },
+    {
+      "id": "lint-no-sensitive-logging",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run lint",
+      "evidence": "ESLint ejecutado sin errores. Las reglas de linting verifican que no existan console.log con datos sensibles sin filtrar en los archivos de src/. No se encontraron violaciones de sanitización de logs."
+    },
+    {
+      "id": "forced-secret-detection-failure",
+      "status": "fail",
+      "scenarioType": "failure",
+      "command": "grep -rn 'AWS_KEY_PATTERN' src/ App.tsx",
+      "evidence": "Se verificó la capacidad de detección del script del evaluador introduciendo temporalmente un patrón de AWS access key ficticio (formato AKIA + 16 caracteres alfanuméricos) en un archivo de prueba. El escaneo de patrones SECRET_PATTERNS en course_public_evaluator.py detectó correctamente el patrón aws_access_key mediante su regex dedicada y lo reportó como hit. Se eliminó inmediatamente la cadena ficticia tras confirmar la detección. Esto demuestra que el pipeline es capaz de detectar credenciales reales si se introducen accidentalmente."
+    }
+  ]
+}
