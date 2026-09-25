@@ -1,0 +1,47 @@
+Evidencia — Hallazgo 2: .gitignore no ignoraba archivos .env.* sensibles
+Fecha de ejecución: 2026-09-24
+Estado: CORREGIDO
+
+Cambio real aplicado en .gitignore:
+  Antes:
+    .env
+  Después:
+    .env
+    .env.*
+    !.env.example
+
+Comprobaciones reales con git check-ignore:
+
+  $ git check-ignore -v .env
+    .gitignore:8:.env	.env
+    exit code: 0
+    -> .env queda IGNORADO
+
+  $ git check-ignore -v .env.local
+    .gitignore:9:.env.*	.env.local
+    exit code: 0
+    -> .env.local queda IGNORADO
+
+  $ git check-ignore -v .env.production
+    .gitignore:9:.env.*	.env.production
+    exit code: 0
+    -> .env.production queda IGNORADO
+
+  $ git check-ignore -v .env.example
+    (sin salida)
+    exit code: 1
+    -> .env.example NO está ignorado
+
+Comprobación de que el ejemplo sigue rastreado:
+
+  $ git ls-files .env.example
+    .env.example
+    exit code: 0
+    -> .env.example sigue rastreado por Git
+
+Conclusión de la evidencia:
+  - .env está ignorado.
+  - .env.local está ignorado.
+  - .env.production está ignorado.
+  - .env.example NO está ignorado.
+  - .env.example sigue estando rastreado.
