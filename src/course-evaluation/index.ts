@@ -12,8 +12,60 @@ function pending(name: string): never {
   throw new Error(`${name} must be implemented in the assigned week`);
 }
 
-export function redactForTelemetry(_input: unknown): unknown {
-  return pending('redactForTelemetry');
+/**
+ * Semana 4 — Auditoría de seguridad y privacidad.
+ *
+ * Ocultar un dato en la UI no equivale a protegerlo: si un objeto de
+ * sesión, perfil o incidente se envía tal cual a logs/telemetría, un
+ * token, un correo o una ubicación quedan expuestos igual.
+ *
+ * Esta función recorre el objeto recursivamente y sustituye por
+ * '[REDACTED]' cualquier campo cuyo nombre corresponda a información
+ * sensible, sin alterar el resto del contexto técnico (ids, códigos de
+ * error, intentos, etc.) que sí sirve para depurar.
+ */
+const SENSITIVE_KEYS = new Set([
+  'authorization',
+  'accesstoken',
+  'refreshtoken',
+  'token',
+  'password',
+  'secret',
+  'email',
+  'displayname',
+  'location',
+  'photos',
+  'photo',
+  'internalcomments',
+  'phone',
+  'phonenumber',
+  'address',
+]);
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function redactValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => (isPlainObject(item) ? redactObject(item) : item));
+  }
+  if (isPlainObject(value)) {
+    return redactObject(value);
+  }
+  return value;
+}
+
+function redactObject(input: Record<string, unknown>): Record<string, unknown> {
+  const output: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    output[key] = SENSITIVE_KEYS.has(key.toLowerCase()) ? '[REDACTED]' : redactValue(value);
+  }
+  return output;
+}
+
+export function redactForTelemetry(input: unknown): unknown {
+  return isPlainObject(input) ? redactObject(input) : input;
 }
 
 export function parseRemoteResource(_input: unknown): ParseResult {
