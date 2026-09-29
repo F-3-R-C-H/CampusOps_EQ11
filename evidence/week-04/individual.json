@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "week": 4,
+  "teamId": "EQ11",
+  "members": [
+    {
+      "studentId": "3523110683",
+      "commitShas": [
+        "4410fb5ade6cef5f200c29a58dadedc5e5bbe572",
+        "2c5d690b314907a0839460dd838ad84a157a3ad8"
+      ],
+      "files": [
+        ".github/workflows/week-04-seguridad-privacidad-feedback.yml",
+        "src/infrastructure/logging/secureLogger.ts",
+        "course-tests/public/week-04.test.ts",
+        "package.json",
+        ".gitignore"
+      ],
+      "tests": [
+        "course-tests/public/week-04.test.ts"
+      ],
+      "reviews": [
+        "src/course-evaluation/index.ts",
+        "src/infrastructure/security/sanitizer.ts",
+        "src/infrastructure/security/secureStorage.ts"
+      ],
+      "prediction": "El test público week-04 pasará porque redactForTelemetry (implementación de Danna) normaliza correctamente las claves sensibles del contrato CAMPUSOPS_API.md y el sanitizador de Tonantzin pasa 31 tests incluyendo normalización con guiones/guiones bajos, referencias circulares y objetos Error. El logger seguro no tiene test propio pero es consumidor de redactForTelemetry.",
+      "command": "npx jest --no-watchman --no-coverage --runInBand course-tests/public/week-04.test.ts --verbose",
+      "observedResult": "PASS course-tests/public/week-04.test.ts — Tests: 1 passed, 1 total. Time: 2.628 s. √ CampusOps redacts personal and incident-sensitive data while preserving technical context (4 ms).",
+      "explanation": "Integré el paquete oficial de la semana 04 desde el ZIP del profesor: copié el workflow week-04-seguridad-privacidad-feedback.yml, el test público week-04.test.ts y los docs actualizados. Hice merge de la rama feature/tonantzin-week04 (secureStorage.ts, sanitizer.ts y sus tests) y de week4/security-audit-danna (redactForTelemetry en index.ts y docs/security-audit.md). Instalé expo-secure-store con npx expo install para que el mock de jest en secureStorage.test.ts resolviera el módulo. Excluí _week04_ref/ del gitignore y del testPathIgnorePatterns para que jest no intentara resolver imports desde la carpeta temporal. Creé secureLogger.ts que aplica redactForTelemetry automáticamente a cualquier contexto antes de emitirlo, con manejo especial de objetos Error para preservar name y message técnicos sin exponer el stack completo. Generé los reportes secret-scan.json y negative-tests.json con comandos reales y evidencias observadas, y el engineering.json con la justificación documentada de expo-secure-store frente a AsyncStorage y react-native-keychain."
+    },
+    {
+      "studentId": "3523110097",
+      "commitShas": [
+        "a377a93ce19ab558d5ed0176839f34122300e3ad"
+      ],
+      "files": [
+        "src/course-evaluation/index.ts",
+        "docs/security-audit.md",
+        "docs/evidence/hallazgo-1-audit.txt",
+        "docs/evidence/hallazgo-2-gitignore.txt",
+        "docs/evidence/hallazgo-3-redact-telemetry.txt",
+        ".gitignore"
+      ],
+      "tests": [],
+      "reviews": [
+        "docs/security-audit.md",
+        "docs/evidence/hallazgo-1-audit.txt"
+      ],
+      "prediction": "La prueba pública de week-04 pasará porque redactForTelemetry normaliza cada clave con toLowerCase().replace(/[_-]/g, '') y la compara contra el Set de claves sensibles del contrato CAMPUSOPS_API.md, sustituyendo el valor completo por [REDACTED] sin mutar la entrada original.",
+      "command": "npx jest --no-watchman --no-coverage --runInBand course-tests/public/week-04.test.ts --verbose",
+      "observedResult": "PASS course-tests/public/week-04.test.ts — √ CampusOps redacts personal and incident-sensitive data while preserving technical context (4 ms). Tests: 1 passed, 1 total.",
+      "explanation": "Implementé la función redactForTelemetry en src/course-evaluation/index.ts según el contrato de CAMPUSOPS_API.md. La función usa un Set de claves sensibles normalizadas (minúsculas, sin separadores), una función normalizeKey que aplica toLowerCase y replace(/[_-]/g, ''), y una función recursiva redactValue que recorre objetos y arreglos creando estructuras nuevas sin mutar la entrada. Documenté los hallazgos en docs/security-audit.md con evidencia de tres vulnerabilidades encontradas: (1) tokens en headers HTTP sin sanitizar, (2) ausencia de .env en .gitignore al inicio del proyecto, (3) ausencia de redactForTelemetry conectada. También actualicé .gitignore para excluir archivos .env."
+    },
+    {
+      "studentId": "3523110858",
+      "commitShas": [
+        "8688adbe4c224bfb0db1552e5d9767c642095833"
+      ],
+      "files": [
+        "src/infrastructure/security/secureStorage.ts",
+        "src/infrastructure/security/sanitizer.ts",
+        "src/__tests__/secureStorage.test.ts",
+        "src/__tests__/sanitizer.test.ts",
+        "app.json",
+        "package.json",
+        "package-lock.json"
+      ],
+      "tests": [
+        "src/__tests__/secureStorage.test.ts",
+        "src/__tests__/sanitizer.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Las pruebas unitarias pasarán porque sanitizer.ts normaliza las claves (minúsculas, sin _ ni -), sustituye por [REDACTED] el valor completo de las claves sensibles del contrato, conserva incidentId/status/attempt/durationMs y no muta la entrada; y secureStorage.ts valida tokens vacíos o mayores a 2048 bytes y nunca incluye el token en los mensajes de error.",
+      "command": "npx jest src/__tests__ --no-coverage",
+      "observedResult": "Test Suites: 2 passed, 2 total. Tests: 38 passed, 38 total. sanitizer.test.ts: 31 passed. secureStorage.test.ts: 7 passed.",
+      "explanation": "Instalé expo-secure-store con npx expo install. Creé secureStorage.ts (guardar/leer/eliminar sessionToken y refreshToken, clearSecureSession para logout con Promise.allSettled, validación de tamaño y errores sin datos sensibles) y sanitizer.ts (normalizeKey, isSensitiveKey y sanitize recursivo puro, con manejo de arreglos, objetos Error y referencias circulares). Escribí pruebas nominales, de frontera (anidación profunda, claves con guiones, arreglos) y de falla (errores con credenciales, fallo de SecureStore)."
+    }
+  ]
+}

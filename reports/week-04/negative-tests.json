@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "week": 4,
+  "commitSha": "c47579815a3a513618db9b572604fd2a7aeea9d4",
+  "generatedAt": "2026-09-29T02:27:34Z",
+  "checks": [
+    {
+      "id": "redact-authorization-in-headers",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npx jest --no-watchman --no-coverage --runInBand course-tests/public/week-04.test.ts --verbose",
+      "evidence": "PASS course-tests/public/week-04.test.ts — CampusOps redacts personal and incident-sensitive data while preserving technical context (4 ms). El campo authorization dentro de request.headers se sustituye por [REDACTED]; el campo accept (no sensible) se conserva con valor 'application/json'."
+    },
+    {
+      "id": "redact-profile-pii-fields",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npx jest --no-watchman --no-coverage --runInBand course-tests/public/week-04.test.ts --verbose",
+      "evidence": "Los campos email ('person@campusops.test') y displayName ('Persona ficticia') dentro del objeto profile anidado se sustituyen por [REDACTED]. incidentId 'campus-inc-001' se conserva intacto."
+    },
+    {
+      "id": "preserve-technical-context",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npx jest --no-watchman --no-coverage --runInBand src/__tests__/sanitizer.test.ts --verbose -t 'incidentId NO es sensible'",
+      "evidence": "incidentId, correlationId, status, attempt y durationMs identificados como NO sensibles. Tests: √ incidentId NO es sensible, √ correlationId NO es sensible, √ status NO es sensible, √ attempt NO es sensible, √ durationMs NO es sensible."
+    },
+    {
+      "id": "redact-all-sensitive-key-types",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npx jest --no-watchman --no-coverage --runInBand src/__tests__/sanitizer.test.ts --verbose",
+      "evidence": "19 claves sensibles identificadas y redactadas: authorization, password, token, accessToken, refresh_token, email, displayName, name, userId, reporter-id, technicianId, assigned_technician_id, assignmentHistory, location, latitude, longitude, photos, evidence, internalComments. Tests: 25 passed."
+    },
+    {
+      "id": "redact-deeply-nested-objects",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npx jest --no-watchman --no-coverage --runInBand src/__tests__/sanitizer.test.ts --verbose -t 'anidacion profunda'",
+      "evidence": "√ anidación profunda y arreglos de objetos (1 ms). Campos sensibles a 3+ niveles de profundidad se redactan correctamente; objetos dentro de arreglos también se sanitizan de forma recursiva."
+    },
+    {
+      "id": "redact-keys-with-separators",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npx jest --no-watchman --no-coverage --runInBand src/__tests__/sanitizer.test.ts --verbose -t 'refresh_token|assigned_technician_id|reporter-id'",
+      "evidence": "√ refresh_token es sensible, √ assigned_technician_id es sensible, √ reporter-id es sensible. La normalización (toLowerCase + remove _/-) permite reconocer variantes con guiones y guiones bajos sin enumerar cada formato posible."
+    },
+    {
+      "id": "no-input-mutation",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npx jest --no-watchman --no-coverage --runInBand src/__tests__/sanitizer.test.ts --verbose -t 'no muta'",
+      "evidence": "√ no muta la entrada original (2 ms). Se compara el objeto de entrada con JSON.parse(JSON.stringify(input)) antes y después de llamar a sanitize(). Los valores son idénticos: la función opera sobre copias sin modificar la referencia original."
+    },
+    {
+      "id": "error-context-sanitization",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npx jest --no-watchman --no-coverage --runInBand src/__tests__/sanitizer.test.ts --verbose -t 'objetos de error'",
+      "evidence": "√ objetos de error no exponen credenciales (1 ms). Un objeto Error con authorization y password en propiedades enumerables se sanitiza: los campos sensibles aparecen como [REDACTED]; name (tipo de error) y message (mensaje técnico) se conservan para diagnóstico."
+    },
+    {
+      "id": "circular-reference-safety",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npx jest --no-watchman --no-coverage --runInBand src/__tests__/sanitizer.test.ts --verbose -t 'circulares'",
+      "evidence": "√ referencias circulares no provocan bucle infinito (1 ms). El sanitizador detecta ciclos mediante WeakSet y sustituye la referencia circular por el string '[Circular]' sin lanzar excepción ni entrar en bucle."
+    }
+  ]
+}

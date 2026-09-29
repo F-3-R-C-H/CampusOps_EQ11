@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "week": 4,
+  "commitSha": "c47579815a3a513618db9b572604fd2a7aeea9d4",
+  "decision": "El equipo seleccionó expo-secure-store como mecanismo de almacenamiento seguro para tokens de sesión y credenciales de CampusOps. Esta librería utiliza EncryptedSharedPreferences (AES-256-GCM) en Android y Keychain en iOS, proporcionando cifrado a nivel de sistema operativo sin requerir eyección del proyecto Expo. La implementación en secureStorage.ts añade validación de tamaño (máximo 2048 bytes), rechazo de tokens vacíos y manejo de errores que nunca incluye el valor del token en el mensaje de error. Para la sanitización de registros se implementó redactForTelemetry (Danna) como función pura que recorre recursivamente objetos y listas, y sanitizer.ts (Tonantzin) como módulo reutilizable que añade protección contra referencias circulares y manejo de objetos Error. El riesgo residual principal es que dependencias de terceros pueden emitir logs no sanitizados por nuestra capa de control.",
+  "alternatives": [
+    "AsyncStorage (included in React Native): es la opción más simple disponible en React Native y Expo, con API key-value síncrona e idéntica a la de expo-secure-store. Sin embargo almacena datos en texto plano sin cifrado: en Android usa SharedPreferences sin cifrar y en iOS NSUserDefaults, ambos accesibles mediante extracción de backup, inspección con herramientas ADB o en dispositivos rooteados. No es aceptable para tokens de sesión porque un adversario con acceso físico al dispositivo puede leer las credenciales directamente, incumpliendo AMENAZA-04 del threat model.",
+    "react-native-keychain: wrapper maduro del Keychain de iOS y del Android Keystore con soporte de biometría y cifrado equivalente a expo-secure-store. Ofrece una API más granular (setGenericPassword, resetGenericPassword, getSupportedBiometryType) y manejo explícito de niveles de acceso. La razón de no seleccionarlo es que requiere código nativo adicional y no es compatible con Expo Go ni con el flujo de desarrollo del equipo sin ejecutar expo prebuild; añade además una dependencia de la comunidad fuera del ecosistema oficial de Expo SDK 57, lo que puede generar conflictos en futuras actualizaciones del SDK o en el pipeline de CI."
+  ],
+  "tradeoff": "Beneficio: expo-secure-store forma parte oficial del SDK de Expo 57, funciona con Expo Go y con builds de desarrollo sin prebuild, usa cifrado nativo del sistema operativo (AES-256-GCM en Android con EncryptedSharedPreferences, Keychain con kSecAttrAccessibleWhenUnlockedThisDeviceOnly en iOS), tiene API key-value simple ideal para tokens individuales y es compatible con el pipeline de CI del curso. Costo: el límite conservador de 2048 bytes por valor impide almacenar estructuras grandes como colas de operaciones offline (para esto se usaría AsyncStorage con cifrado a nivel de aplicación en semanas futuras); en entorno web la implementación cae a localStorage sin cifrado; y en tests de jest requiere mock explícito porque la librería usa módulos nativos. El módulo secureStorage.ts mitiga esto con Promise.allSettled en clearSecureSession para garantizar que un fallo al borrar un token no impida borrar el otro.",
+  "requirementIds": ["AC-01", "AC-02", "AC-03", "AC-04", "AC-05"],
+  "verification": [
+    {
+      "command": "npx jest --no-watchman --no-coverage --runInBand course-tests/public/week-04.test.ts --verbose",
+      "result": "pass",
+      "evidence": "PASS course-tests/public/week-04.test.ts (2.628 s). Test: CampusOps redacts personal and incident-sensitive data while preserving technical context — PASS (4 ms). authorization, email, displayName, location, photos, internalComments → [REDACTED]; incidentId, accept → conservados."
+    },
+    {
+      "command": "npx jest --no-watchman --no-coverage --runInBand src/__tests__/sanitizer.test.ts src/__tests__/secureStorage.test.ts --verbose",
+      "result": "pass",
+      "evidence": "Test Suites: 2 passed, 2 total. Tests: 36 passed, 36 total. sanitizer.test.ts: 31 tests — normalización, claves sensibles/no-sensibles, incidente complejo, no mutación, anidación profunda, referencias circulares, objetos Error. secureStorage.test.ts: 7 tests — guardar/leer/eliminar tokens, rechazo de tokens vacíos, rechazo de tokens mayores a 2048 bytes, errores sin datos sensibles, clearSecureSession con fallo parcial."
+    },
+    {
+      "command": "git ls-files | Where-Object { $_ -notmatch 'node_modules|\\.expo|android|ios|dist' } | ForEach-Object { Select-String -Path $_ -Pattern 'BEGIN PRIVATE KEY|BEGIN RSA|github_token|aws_access_key_id|EXPO_PUBLIC_.*SECRET' -ErrorAction SilentlyContinue }",
+      "result": "pass",
+      "evidence": "0 credenciales reales detectadas. Las únicas coincidencias son: (1) documentación en README.md que describe la política, (2) expresiones regulares de detección en course_public_evaluator.py. No se encontraron llaves privadas, tokens de proveedores ni variables EXPO_PUBLIC_ con sufijos sensibles en ningún archivo de código fuente o configuración."
+    }
+  ]
+}
