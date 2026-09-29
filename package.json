@@ -47,7 +47,8 @@
     "preset": "jest-expo",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/course-tests/hidden/"
+      "/course-tests/hidden/",
+      "/_week04_ref/"
     ],
     "coverageDirectory": "coverage",
     "collectCoverageFrom": [

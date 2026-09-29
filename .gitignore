@@ -13,3 +13,4 @@ dist/
 *.p8
 *.p12
 reports/**/generated-*
+_week04_ref/
