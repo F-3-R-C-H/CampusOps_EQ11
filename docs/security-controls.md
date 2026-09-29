@@ -1,77 +1,56 @@
-# Controles de Seguridad — CampusOps Semana 4
+# Controles de seguridad y privacidad — CampusOps, semana 4
 
-## 1. Datos sensibles identificados
+## Inventario de datos sensibles
 
-| Dato | Ubicación en la app | Riesgo si se expone |
-|------|---------------------|---------------------|
-| Token de sesión (`authorization`) | Headers HTTP, respuesta de login | Suplantación de identidad completa |
-| Correo y nombre (`email`, `displayName`, `name`) | Perfil del actor, logs de error | Exposición de PII |
-| IDs de usuario/técnico (`userId`, `reporterId`, `technicianId`, `assignedTechnicianId`) | Payload de incidencias, logs de asignación | Identificación personal |
-| Ubicación (`location`, `latitude`, `longitude`) | Payload de incidencias, geocodificación | Rastreo físico del reportante |
-| Fotografías (`photos`) | Payload de evidencias, caché de imágenes | Exposición de contenido sensible |
-| Comentarios internos (`internalComments`) | Payload de incidencias, logs de sincronización | Filtración de notas operativas internas |
-| Historial de asignaciones (`assignmentHistory`) | Logs de cambios de estado | Trazabilidad no autorizada de personal |
-| Refresh token (`refreshToken`, `accessToken`) | Almacenamiento local, flujo de sesión | Extensión no autorizada de la sesión |
+El contrato de sanitización de `docs/CAMPUSOPS_API.md` define campos que no deben llegar a telemetría en texto claro. El backend didáctico y sus rutas de incidencias describen recursos con reportantes, técnicos, ubicación, evidencias, comentarios y cambios de estado; por ello los datos sensibles se concentran en payloads de incidencias, peticiones HTTP y contexto de errores o logs.
 
-## 2. Controles implementados
+| Dato | Posibles componentes de exposición existentes |
+| --- | --- |
+| Tokens y datos de sesión (`authorization`, `token`, `accessToken`, `refreshToken`) | Headers de peticiones y el wrapper `src/infrastructure/security/secureStorage.ts`. |
+| Identidad de usuarios; correos y nombres visibles (`email`, `displayName`, `name`) | Objetos de perfil o de incidencia recibidos desde la API y contexto enviado al logger. |
+| Identificadores de usuarios, reportantes y técnicos (`userId`, `reporterId`, `technicianId`, `assignedTechnicianId`) | Payloads de incidencias, asignaciones y contexto técnico. |
+| Ubicación, latitud y longitud (`location`, `latitude`, `longitude`) | Payload de incidencias y la ruta de geocodificación documentada en `docs/CAMPUSOPS_API.md`. |
+| Fotografías y evidencias (`photos`, `evidence`) | Payloads y referencias de evidencia de incidencias. |
+| Comentarios internos (`internalComments`) | Payloads de incidencias y contexto de diagnóstico. |
+| Historial de asignaciones (`assignmentHistory`) | Recurso de incidencia y sus cambios de asignación. |
 
-### 2.1 Sanitización de registros (`redactForTelemetry`)
+## Amenazas relacionadas
 
-**Amenaza relacionada:** AMENAZA-03 — Filtrar datos sensibles en registros.
+`docs/threat-model.md` identifica las siguientes amenazas relevantes:
 
-**Implementación:** La función `redactForTelemetry` en `src/course-evaluation/index.ts` recorre recursivamente objetos y arreglos, sustituyendo el valor completo por `[REDACTED]` cuando la clave normalizada (minúsculas, sin `_` ni `-`) pertenezca a la lista del contrato `CAMPUSOPS_API.md`. No muta la entrada original.
+- **AMENAZA-03 — Filtrar datos sensibles en registros [MEDIA].** Los logs pueden exponer tokens de sesión, correos o coordenadas exactas en texto claro. El control declarado allí es sanitizar logs y evitar volcar objetos completos.
+- **AMENAZA-04 — Exponer credenciales en código [ALTA].** API keys, contraseñas o tokens hardcodeados pueden quedar en el repositorio. El modelo asocia esta amenaza al escaneo automatizado de secretos en CI (`npm run audit:ci` y patrones sensibles).
 
-**Campos redactados:** `authorization`, `password`, `token`, `accessToken`, `refreshToken`, `email`, `displayName`, `name`, `userId`, `reporterId`, `technicianId`, `assignedTechnicianId`, `location`, `latitude`, `longitude`, `photos`, `evidence`, `internalComments`, `assignmentHistory`.
+El almacenamiento local de tokens es un caso adicional de protección de credenciales: `secureStorage.ts` reduce el riesgo si una sesión necesita persistirse en el dispositivo, pero no sustituye el escaneo de secretos que el modelo de amenazas asigna a AMENAZA-04.
 
-**Campos técnicos conservados:** `incidentId`, `correlationId`, `status`, `attempt`, `durationMs` y cualquier campo no listado como sensible.
+## Controles implementados
 
-### 2.2 Módulo de sanitización reutilizable (`sanitizer.ts`)
+### Redacción para telemetría
 
-**Amenaza relacionada:** AMENAZA-03 — Filtrar datos sensibles en registros.
+`redactForTelemetry` en `src/course-evaluation/index.ts` recorre objetos y arreglos sin mutar la entrada. Normaliza las claves a minúsculas y elimina `_` y `-`; si coincide con una clave sensible del contrato, reemplaza el valor completo por `"[REDACTED]"`. Esto cubre, entre otros, `authorization`, datos de identidad, coordenadas, fotografías, evidencias, comentarios internos e historial de asignaciones. Los campos técnicos no sensibles, como `incidentId`, `correlationId`, `status`, `attempt` y `durationMs`, se conservan.
 
-**Implementación:** `src/infrastructure/security/sanitizer.ts` expone `normalizeKey`, `isSensitiveKey` y `sanitize`, utilizable desde cualquier capa de la aplicación. Añade protección contra referencias circulares (mediante `WeakSet`) y manejo explícito de instancias `Error` (preserva `name` y `message`, redacta propiedades enumerables sensibles).
+### Sanitizador reutilizable
 
-### 2.3 Almacenamiento seguro de tokens (`secureStorage.ts`)
+`src/infrastructure/security/sanitizer.ts` implementa `normalizeKey`, `isSensitiveKey` y `sanitize`. Además de la redacción recursiva, gestiona referencias circulares con `WeakSet` y representa objetos `Error` conservando `name` y `message` junto con sus propiedades enumerables ya sanitizadas. Su comportamiento se encuentra cubierto por `src/__tests__/sanitizer.test.ts`.
 
-**Amenaza relacionada:** AMENAZA-04 — Exposición de credenciales en código y almacenamiento.
+### Logger seguro
 
-**Mecanismo elegido:** `expo-secure-store` (SDK 57 oficial de Expo).
+`src/infrastructure/logging/secureLogger.ts` expone `logDebug`, `logInfo`, `logWarn` y `logError`. Antes de emitir un contexto lo pasa por `redactForTelemetry`; para un `Error`, `logError` conserva únicamente nombre y mensaje, sin serializar el stack. La emisión está condicionada a `__DEV__`. Este logger controla solamente los contextos que se le entregan, no los logs propios de otras librerías.
 
-**Justificación:** Usa `EncryptedSharedPreferences` (AES-256-GCM) en Android y `Keychain` con `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` en iOS. Proporciona cifrado a nivel de sistema operativo sin requerir eyección del proyecto Expo ni dependencias fuera del ecosistema oficial.
+### Persistencia y limpieza de sesión
 
-**Implementación:** `src/infrastructure/security/secureStorage.ts` expone funciones para guardar, leer y eliminar `sessionToken` y `refreshToken`. Valida que el token no esté vacío y no supere 2048 bytes. Los errores nunca incluyen el valor del token. `clearSecureSession` usa `Promise.allSettled` para garantizar que un fallo parcial no deje tokens residuales.
+`src/infrastructure/security/secureStorage.ts` usa `expo-secure-store` para `sessionToken` y `refreshToken`, con la opción `WHEN_UNLOCKED_THIS_DEVICE_ONLY`. Rechaza valores vacíos o mayores de 2048 bytes y reemplaza errores del proveedor por mensajes que no incluyen el token. `clearSecureSession` intenta borrar ambos valores con `Promise.allSettled`; si cualquiera falla, informa que la limpieza no fue completa después de haber intentado ambas eliminaciones.
 
-**Alternativas descartadas:**
-- `AsyncStorage`: sin cifrado, datos en texto plano accesibles con backup o ADB.
-- `react-native-keychain`: requiere prebuild, fuera del ecosistema oficial de Expo SDK 57.
+## Elección de almacenamiento seguro
 
-### 2.4 Logger seguro (`secureLogger.ts`)
+`package.json` declara `expo-secure-store` `~57.0.4`, compatible con el proyecto Expo `~57.0.9`; por eso se seleccionó para el wrapper existente. La librería delega la protección de credenciales al almacenamiento seguro del sistema operativo (Keychain en iOS y Keystore en Android), evitando guardar el token directamente en una preferencia ordinaria.
 
-**Amenaza relacionada:** AMENAZA-03 — Filtrar datos sensibles en registros.
+`AsyncStorage` no aparece como dependencia de este repositorio y no proporciona por sí mismo almacenamiento cifrado apropiado para credenciales; no es la opción elegida para tokens. `react-native-keychain` tampoco está instalado. Aunque puede acceder a Keychain/Keystore, añadirlo requeriría incorporar otra dependencia y su configuración nativa no sigue tan directamente el flujo Expo que ya usa `expo-secure-store`. Esta comparación no implica que esas alternativas sean inseguras en todos los usos: la decisión se limita al flujo y dependencias actuales del proyecto.
 
-**Implementación:** `src/infrastructure/logging/secureLogger.ts` expone `logDebug`, `logInfo`, `logWarn` y `logError`. Todo contexto pasa por `redactForTelemetry` antes de ser emitido. `logError` extrae solo `name` y `message` de los objetos `Error`, descartando el stack trace que puede contener valores de variables. Solo emite en `__DEV__`.
+## Riesgo residual
 
-### 2.5 Eliminación de secretos en código
-
-**Amenaza relacionada:** AMENAZA-04 — Exposición de credenciales en código.
-
-**Control:** Los valores `course-valid-token` y los actorIds del backend son fixtures públicos de prueba documentados en `CAMPUSOPS_API.md`, no secretos reales. La URL del backend se configura mediante variable de entorno en `.env` (excluido de git mediante `.gitignore`). El escaneo reproducible en `reports/week-04/secret-scan.json` confirma 0 credenciales reales encontradas.
-
-## 3. Relación con el modelo de amenazas (Semana 3)
-
-| Amenaza (threat-model.md) | Control de esta semana |
-|---------------------------|------------------------|
-| AMENAZA-03 — Filtrar datos en registros | `redactForTelemetry`, `sanitizer.ts`, `secureLogger.ts` |
-| AMENAZA-04 — Exponer credenciales en código | `expo-secure-store`, `.gitignore` actualizado, escaneo reproducible |
-
-Las amenazas AMENAZA-01, AMENAZA-02 y AMENAZA-05 se tratan mediante controles de autorización y validación en la capa de aplicación, no requieren cambios adicionales en esta semana.
-
-## 4. Riesgo residual
-
-| Riesgo | Descripción | Probabilidad | Mitigación actual |
-|--------|-------------|:------------:|-------------------|
-| Logs de dependencias externas | Librerías npm pueden emitir trazas con datos no sanitizados | Media | Limitar el nivel de log en producción; revisar dependencias críticas |
-| Metro bundler en desarrollo | En modo dev, Metro puede registrar requests completos con headers | Baja | Afecta solo entorno de desarrollo; no se despliega a producción |
-| Stack traces del runtime | Un crash nativo puede capturar valores de variables en el stack | Media | Evaluar integración con servicio de crash reporting que sanitice automáticamente |
-| Límite de 2KB en expo-secure-store | Tokens que excedan 2048 bytes no pueden almacenarse de forma segura | Baja | El módulo rechaza explícitamente valores fuera de rango; para datos mayores usar cifrado en AsyncStorage |
-| Dispositivos rooteados/jailbreak | El Keystore puede quedar expuesto si el dispositivo está comprometido a nivel de OS | Baja | Fuera del control de la aplicación; se documenta como riesgo aceptado |
+- Las dependencias externas pueden generar registros que no pasan por `secureLogger.ts` ni por los sanitizadores.
+- El límite de 2048 bytes impuesto por `secureStorage.ts` impide guardar valores grandes; el módulo los rechaza, pero no resuelve dónde persistirlos de forma segura.
+- El comportamiento de almacenamiento seguro puede diferir en web y las pruebas usan un mock de Jest del módulo nativo; esas pruebas no verifican el Keychain o Keystore de un dispositivo real.
+- Un dispositivo con root o jailbreak puede quedar comprometido fuera de las garantías de la aplicación.
+- Capturas de pantalla, volcados de memoria, copias de seguridad o accesos físicos fuera del control directo de CampusOps pueden exponer información mostrada o ya extraída.

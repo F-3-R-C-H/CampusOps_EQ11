@@ -32,7 +32,8 @@
     {
       "studentId": "3523110097",
       "commitShas": [
-        "a377a93ce19ab558d5ed0176839f34122300e3ad"
+        "a377a93ce19ab558d5ed0176839f34122300e3ad",
+        "b7426141737d7bdaf1e2c8956adae259c24cf6c6"
       ],
       "files": [
         "src/course-evaluation/index.ts",
@@ -40,17 +41,25 @@
         "docs/evidence/hallazgo-1-audit.txt",
         "docs/evidence/hallazgo-2-gitignore.txt",
         "docs/evidence/hallazgo-3-redact-telemetry.txt",
-        ".gitignore"
+        ".gitignore",
+        "docs/security-controls.md",
+        "reports/week-04/negative-tests.json",
+        "evidence/week-04/engineering.json",
+        "evidence/week-04/individual.json"
       ],
-      "tests": [],
+      "tests": [
+        "course-tests/public/week-04.test.ts",
+        "src/__tests__/sanitizer.test.ts",
+        "src/__tests__/secureStorage.test.ts"
+      ],
       "reviews": [
         "docs/security-audit.md",
         "docs/evidence/hallazgo-1-audit.txt"
       ],
-      "prediction": "La prueba pública de week-04 pasará porque redactForTelemetry normaliza cada clave con toLowerCase().replace(/[_-]/g, '') y la compara contra el Set de claves sensibles del contrato CAMPUSOPS_API.md, sustituyendo el valor completo por [REDACTED] sin mutar la entrada original.",
-      "command": "npx jest --no-watchman --no-coverage --runInBand course-tests/public/week-04.test.ts --verbose",
-      "observedResult": "PASS course-tests/public/week-04.test.ts — √ CampusOps redacts personal and incident-sensitive data while preserving technical context (4 ms). Tests: 1 passed, 1 total.",
-      "explanation": "Implementé la función redactForTelemetry en src/course-evaluation/index.ts según el contrato de CAMPUSOPS_API.md. La función usa un Set de claves sensibles normalizadas (minúsculas, sin separadores), una función normalizeKey que aplica toLowerCase y replace(/[_-]/g, ''), y una función recursiva redactValue que recorre objetos y arreglos creando estructuras nuevas sin mutar la entrada. Documenté los hallazgos en docs/security-audit.md con evidencia de tres vulnerabilidades encontradas: (1) tokens en headers HTTP sin sanitizar, (2) ausencia de .env en .gitignore al inicio del proyecto, (3) ausencia de redactForTelemetry conectada. También actualicé .gitignore para excluir archivos .env."
+      "prediction": "La documentación y los reportes de semana 04 serán consistentes con el contrato porque redactForTelemetry y el sanitizador conservan contexto técnico, redactan claves sensibles normalizadas y no mutan la entrada.",
+      "command": "npx jest --no-watchman --no-coverage --runInBand course-tests/public/week-04.test.ts src/__tests__/sanitizer.test.ts src/__tests__/secureStorage.test.ts --verbose",
+      "observedResult": "PASS: 3 suites y 39 pruebas pasaron sobre b7426141737d7bdaf1e2c8956adae259c24cf6c6; incluyeron la prueba pública de semana 04, sanitización y almacenamiento seguro.",
+      "explanation": "Actualicé la documentación de controles de seguridad y privacidad, el índice de pruebas negativas y la evidencia de decisión técnica. La documentación distingue los controles implementados de los riesgos residuales, relaciona AMENAZA-03 y AMENAZA-04 con su redacción real y justifica expo-secure-store frente a AsyncStorage y react-native-keychain según las dependencias y el flujo Expo presentes. Los resultados registrados proceden de verificaciones ejecutadas sobre el primer commit propio de documentación."
     },
     {
       "studentId": "3523110858",
