@@ -1,0 +1,36 @@
+Evidencia — Hallazgo 1: Dependencias con vulnerabilidades HIGH no bloqueadas por el CI
+Fecha de ejecución: 2026-09-24
+Estado: IDENTIFICADO — NO CORREGIDO
+
+Comando ejecutado:
+  npm audit --omit=dev --json
+
+Resultado real:
+  Exit code: 1
+  metadata.vulnerabilities = { info: 0, low: 0, moderate: 0, high: 2, critical: 0, total: 2 }
+
+Paquetes reportados (transitivos, dentro del grafo de producción con --omit=dev):
+  - @xmldom/xmldom  severity: high  isDirect: false
+    rangos afectados: <=0.8.14 || 0.9.0-beta.1 - 0.9.11
+    cadenas reales en el lockfile:
+      expo -> @expo/cli -> @expo/plist                          -> @xmldom/xmldom 0.8.14
+      expo -> @expo/config-plugins -> xcode -> simple-plist -> plist -> @xmldom/xmldom 0.9.11
+  - js-yaml         severity: high  isDirect: false
+    rangos afectados: 3.0.0 - 3.15.1 || 4.0.0 - 4.3.1
+    cadenas reales en el lockfile:
+      expo -> @expo/cli -> @expo/xcpretty                        -> js-yaml 4.3.1
+      react-native -> @react-native/jest-preset -> babel-jest
+        -> babel-plugin-istanbul -> @istanbuljs/load-nyc-config  -> js-yaml 3.15.1
+
+Script audit:ci actual en package.json:
+  "audit:ci": "npm audit --omit=dev --audit-level=critical"
+
+Problema:
+  El gate del CI está configurado con --audit-level=critical únicamente. Por esa razón,
+  las 2 vulnerabilidades de severidad HIGH presentes en el grafo de producción NO hacen
+  fallar el gate: npm run audit:ci termina con exit code 0 aunque el audit sin filtro de
+  nivel (--omit=dev --json) reporta 2 HIGH y 0 CRITICAL. Las vulnerabilidades HIGH quedan
+  sin visibilidad ni bloqueo dentro del pipeline.
+
+Estado:
+  Hallazgo pendiente de corrección. NO se corrigió en esta actividad.

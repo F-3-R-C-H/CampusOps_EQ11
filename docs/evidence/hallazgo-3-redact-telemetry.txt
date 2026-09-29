@@ -1,0 +1,27 @@
+Evidencia — Hallazgo 3: redactForTelemetry no estaba implementado
+Fecha de ejecución: 2026-09-24
+Estado: CORREGIDO
+
+Test público de Semana 4 — resultado real:
+
+  $ npx jest course-tests/public/week-04.test.ts --no-watchman --ci --runInBand --cacheDirectory .jest-cache
+
+  Exit code: 0
+  Resultado: PASS
+
+  PASS course-tests/public/week-04.test.ts (52.711 s)
+    ✓ CampusOps redacts personal and incident-sensitive data while preserving technical context (17 ms)
+
+  Test Suites: 1 passed, 1 total
+  Tests:       1 passed, 1 total
+  Snapshots:   0 total
+
+Verificaciones complementarias ejecutadas en la misma sesión:
+
+  $ npm run lint
+    Exit code: 0
+    -> eslint sin errores
+
+  $ npm run typecheck
+    Exit code: 0
+    -> tsc --noEmit sin errores
