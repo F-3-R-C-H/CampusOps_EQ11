@@ -184,8 +184,75 @@ Implementado en este bloque:
 - estados de carga, éxito, vacío, error y reintento en lista y detalle;
 - composición de la aplicación con el repositorio API y configuración de URL por entorno.
 
-Pendiente para los otros bloques de semana 05:
+## Creación e idempotencia
 
-- formulario y comando de creación;
-- generación/reutilización de claves de idempotencia;
-- reconciliación de escrituras que puedan terminar en timeout posterior al commit.
+### Entrada y validación previa al envío
+
+La entrada de creación es `NewIncidentInput = { category, description, location }` (`src/domain/models/NewIncident.ts`). `validateNewIncident` se ejecuta antes de cualquier solicitud:
+
+- `category` debe ser una de las siete categorías publicadas; ausente produce `required` y un valor desconocido `invalid_category`;
+- `description` y `location` deben ser texto con caracteres distintos de espacios (`required` en caso contrario);
+- los textos se recortan, de modo que `"  agua "` y `"agua"` son la misma operación;
+- se informan todos los campos inválidos a la vez.
+
+La validación del cliente evita solicitudes inútiles, pero no sustituye al servidor: éste sigue siendo la frontera autoritativa y puede responder `422`. No se inventan límites de longitud que el contrato no publica.
+
+### Puerto y resultados
+
+`IIncidenciaRepository.create(input, idempotencyKey)` devuelve una unión discriminada. La clave la decide el caso de uso (`CreateIncidencia`); ni el repositorio ni el transporte la regeneran entre intentos.
+
+| Resultado | Significado |
+|---|---|
+| `{ ok: true, kind: 'created' }` | `201` y `duplicate: false`: primera ejecución. |
+| `{ ok: true, kind: 'replayed' }` | `200` y `duplicate: true`: misma clave y contenido; misma incidencia. |
+| `error.kind: 'idempotency_conflict'` | `409`: la clave se usó con otro contenido. No guarda nada. |
+| `error.kind: 'http'` | `403` rol incompatible, `422` entrada rechazada, `400` clave ausente/corta, `500` falla del servidor; conservan `status` y `code`. |
+| `error.kind: 'uncertain'` | `timeout`, `network` o JSON ilegible en una escritura: **resultado desconocido**. |
+| `error.kind: 'contract'` | La respuesta no cumple el contrato (ver abajo). |
+| `error.kind: 'validation'` / `'busy'` | Los produce el caso de uso: entrada inválida o envío distinto en curso. |
+
+### Validación de la respuesta de creación
+
+`interpretCreateResponse` (`src/infrastructure/api/incidentCreation.ts`) exige:
+
+1. estado `200` o `201` (cualquier otro `2xx` es `unexpected_status`);
+2. objeto con `operationId` de texto no vacío y `duplicate` booleano (`creation_envelope`);
+3. coherencia: `201` sólo con `duplicate: false` y `200` sólo con `duplicate: true`;
+4. `incident` válido según el mismo parser y mapper de las consultas: sobre inválido (`resource_contract`), estado fuera del dominio (`incident_status`) o payload inválido (`incident_payload`); un `payload: null` **no** se acepta como incidencia creada;
+5. `operationId` igual a la clave enviada (`operation_mismatch` si pertenece a otra operación).
+
+### Ciclo de vida de la clave
+
+| Situación | Clave |
+|---|---|
+| Operación nueva (contenido distinto del pendiente) | Se genera una clave nueva. |
+| Reintento con el mismo contenido tras resultado incierto | Se **conserva** la clave. |
+| Éxito `201` o replay `200` | Se descarta; el siguiente envío es otra operación. |
+| Rechazo definitivo (`400`, `403`, `422`, `409`, otros `4xx`) | Se descarta: no se confirmó nada. |
+| `timeout`, red, JSON ilegible, `500`/`5xx`, `408`, `429`, respuesta inválida | Se **conserva**: pudo haberse confirmado en el servidor. |
+
+Un timeout no confirma que el servidor rechazara la creación: el simulador, en `timeout_after_commit`, guarda la incidencia y responde después de que el cliente abandonó la espera. Por eso el resultado se representa como `uncertain` y la reconciliación consiste en reintentar con la misma clave; el servidor responde `200` con la misma incidencia y no duplica el historial.
+
+El caso de uso comparte la solicitud en curso entre envíos idénticos simultáneos y rechaza con `busy` un envío distinto mientras otro está en curso. La clave vive en memoria durante el ciclo de reintento; no se persiste tras reiniciar la aplicación porque los materiales no lo exigen como requisito confirmado.
+
+### Formulario
+
+`CrearIncidencia` (`src/ui/screens/CrearIncidencia.tsx`) presenta estados de envío, éxito y error, y no llama HTTP ni importa infraestructura. Tras un resultado incierto bloquea el contenido (editarlo sería otra operación y podría duplicar una incidencia ya guardada) y ofrece **Reintentar envío** (misma clave) o **Descartar envío** (operación nueva). El botón se deshabilita mientras hay un envío en curso y una guarda impide dobles envíos. Los mensajes son de presentación y no forman parte del DTO.
+
+Interfaz para integrar en `App.tsx`: `<CrearIncidencia repository onCreated={(id) => ...} onCancel={() => ...} />`; `onCreated` se invoca sólo tras un `201` o `200` confirmados.
+
+### Logs
+
+El transporte registra únicamente método, ruta (`/v1/incidents`), tipo de error, status y código técnico. La `Idempotency-Key`, la descripción, la ubicación y los cuerpos no se registran.
+
+## Estado de implementación — creación
+
+Implementado:
+
+- entrada y validación previa al envío;
+- `create` en el puerto, en `IncidenciaApiRepository` y en el repositorio en memoria (con la misma semántica de replay y conflicto);
+- generación y reutilización de la clave de idempotencia en el caso de uso;
+- distinción entre `201`, replay `200`, `409`, `403`, `422`, `500` y resultado incierto;
+- formulario con prevención de envío simultáneo.
+
+Los resultados de pruebas se registran en `reports/week-05/contract-tests.json` y `failure-matrix.json` únicamente después de ejecutarlas; este documento no declara resultados.

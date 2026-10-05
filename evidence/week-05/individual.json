@@ -66,6 +66,38 @@
       "command": "",
       "observedResult": "",
       "explanation": "El bloque de consultas estaba asignado a Fernando, pero Danna realizó la implementación y las verificaciones registradas. No hay todavía una aportación personal, commit, prueba, revisión, predicción, comando ni resultado confirmados para Fernando; esos campos permanecen vacíos y no se atribuyen a él los commits de Danna."
-    }
+    },
+    {
+  "studentId": "3523110858",
+  "commitShas": ["adc8aa3997f424d720080ff951b8aa66c626a482"],
+  "files": [
+    "src/domain/models/NewIncident.ts",
+    "src/domain/ports/IIncidenciaRepository.ts",
+    "src/application/usecases/CreateIncidencia.ts",
+    "src/infrastructure/api/incidentCreation.ts",
+    "src/infrastructure/api/IncidenciaApiRepository.ts",
+    "src/infrastructure/memory/IncidenciaMemoryRepo.ts",
+    "src/ui/createIncidentMessage.ts",
+    "src/ui/screens/CrearIncidencia.tsx",
+    "src/__tests__/newIncidentValidation.test.ts",
+    "src/__tests__/createIncidenciaUseCase.test.ts",
+    "src/__tests__/incidenciaApiRepositoryCreate.test.ts",
+    "src/__tests__/crearIncidencia.test.tsx",
+    "course-tests/integration/week-05-create-local.test.ts",
+    "docs/api-contract.md"
+  ],
+  "tests": [
+    "src/__tests__/newIncidentValidation.test.ts",
+    "src/__tests__/createIncidenciaUseCase.test.ts",
+    "src/__tests__/incidenciaApiRepositoryCreate.test.ts",
+    "src/__tests__/crearIncidencia.test.tsx",
+    "course-tests/integration/week-05-create-local.test.ts"
+  ],
+  "reviews": [],
+  "prediction": "<escribe ANTES de correr: qué esperas que pase y por qué>",
+  "command": "npm test -- --ci --runInBand course-tests/integration/week-05-create-local.test.ts",
+  "observedResult": "<pega lo que Jest imprimió: suites, pruebas, tiempo>",
+  "explanation": "<ver borrador abajo; ajústalo a lo que realmente hiciste y entiendes>"
+}   
   ]
 }
