@@ -1,14 +1,16 @@
 {
   "schemaVersion": 1,
   "week": 5,
-  "commitSha": "670d830de628c25712a2974a55fc1ee36a37d477",
-  "decision": "En el bloque de contrato implementado por Danna, CampusOps valida primero el sobre remoto compartido y después valida el payload específico de incidencia. El adaptador evaluable parseRemoteResource conserva su firma pública y delega en src/domain/remote/RemoteResource.ts. El mapper sólo construye una Incidencia cuando sobre, estado y payload son válidos; un payload null produce un resultado absent que conserva id, version y status, y los datos inválidos producen razones discriminadas. El DTO remoto se proyecta al modelo de aplicación sin copiar campos futuros ni inventar title o createdAt.",
+  "commitSha": "1c28f9dd12ea8244a062d388b7d0d8e8993ecc86",
+  "decision": "En los bloques implementados por Danna, CampusOps separa cuatro límites: parser del sobre remoto, validación del payload, transporte HTTP y repositorio de consultas. parseRemoteResource conserva su firma pública y delega en la lógica compartida; el mapper sólo construye una Incidencia con datos válidos y representa payload null como absent. CourseHttpClient cubre fetch y lectura del cuerpo con un timeout cancelable, limpia timers, conserva errores network, invalid_json y HTTP, y registra sólo contexto técnico sanitizado. IncidenciaApiRepository valida el contenedor de lista y conserva metadatos de payloads ausentes. App inyecta el puerto: producción usa el repositorio API y las pruebas usan dobles deterministas.",
   "alternatives": [
     "Validar el sobre y todos los campos de incidencia dentro de parseRemoteResource habría reducido archivos, pero habría acoplado un contrato remoto genérico al dominio CampusOps y habría cambiado el alcance de la firma pública evaluable.",
     "Usar aserciones de TypeScript para convertir directamente response.json() en Incidencia habría sido más corto, pero no validaría datos en ejecución ni distinguiría payload null de objetos corruptos.",
-    "Fabricar title y createdAt a partir de description o de la hora local habría conservado la interfaz anterior sin cambios, pero presentaría como remotos valores que el backend no entrega. Se conservaron como metadatos locales opcionales y el mapper los omite."
+    "Fabricar title y createdAt a partir de description o de la hora local habría conservado la interfaz anterior sin cambios, pero presentaría como remotos valores que el backend no entrega. Se conservaron como metadatos locales opcionales y el mapper los omite.",
+    "Llamar fetch desde cada pantalla habría reducido capas, pero duplicaría headers, timeout y errores, impediría inyectar transporte y mezclaría estado visual con contratos remotos.",
+    "Descartar items con payload null o convertir cualquier lista inválida en [] simplificaría la UI, pero confundiría ausencia contractual con lista vacía y ocultaría corrupción de datos."
   ],
-  "tradeoff": "La separación entre parser de sobre, parser de payload y mapper permite reutilizar el límite remoto, probar cada responsabilidad sin red y conservar una unión distinguible entre incident, absent e invalid. El costo es introducir tipos y archivos adicionales y mantener title/createdAt opcionales mientras existe el repositorio en memoria. Los campos adicionales se aceptan para compatibilidad futura, pero sólo los campos conocidos y validados pasan al dominio. Esta decisión no implementa transporte, timeout, manejo HTTP, consultas ni creación; esas comprobaciones siguen pendientes en los otros bloques.",
+  "tradeoff": "La separación entre parser, mapper, transporte y repositorio permite pruebas unitarias sin red, una integración local reproducible y estados distinguibles para empty, payload_absent, datos inválidos y fallas HTTP. El costo es ampliar los tipos del puerto, adaptar el repositorio en memoria y añadir composición e infraestructura. El timeout cubre fetch y lectura del cuerpo y las pantallas identifican la solicitud activa para evitar respuestas obsoletas. La integración local usa node:http inyectado porque Jest sustituye global.fetch. Esta decisión implementa sólo consultas; creación, Idempotency-Key, timeout posterior al commit y verificación oficial con Make continúan pendientes.",
   "requirementIds": ["AC-02", "AC-03", "AC-04", "AC-05"],
   "verification": [
     {
@@ -24,7 +26,7 @@
     {
       "command": "npm test -- --ci --runInBand src/__tests__",
       "result": "pass",
-      "evidence": "La regresión local terminó con 3 suites y 76 pruebas aprobadas. Las 38 pruebas de incidentMapper están incluidas en este total y no se contabilizan como pruebas adicionales."
+      "evidence": "La regresión final terminó con 6 suites y 110 pruebas aprobadas. Incluye las pruebas de parser, transporte, repositorio, pantallas, sanitización y almacenamiento; los subconjuntos no se suman como pruebas distintas."
     },
     {
       "command": "npm run typecheck",
@@ -39,12 +41,17 @@
     {
       "command": "npm run backend:self-test",
       "result": "pass",
-      "evidence": "El backend didáctico informó PASS para sus contratos locales. Este resultado valida el fixture, no demuestra que el cliente de incidencias pendiente funcione."
+      "evidence": "El backend didáctico informó PASS para sus contratos locales. Este resultado valida exclusivamente el fixture y se distingue de la integración del cliente."
+    },
+    {
+      "command": "npm test -- --ci --runInBand course-tests/integration/week-05-client-local.test.ts",
+      "result": "pass",
+      "evidence": "PASS: 1 suite y 1 prueba. CourseHttpClient e IncidenciaApiRepository consultaron el backend local en puerto dinámico y reprodujeron success, nullable, malformed, slow y server_error mediante HTTP real inyectado."
     },
     {
       "command": "npm run test:smoke",
-      "result": "pass_after_isolated_retry",
-      "evidence": "La primera ejecución simultánea con otras verificaciones agotó el timeout de Jest. El mismo comando, repetido aisladamente, terminó con 1 prueba aprobada."
+      "result": "pass",
+      "evidence": "PASS: 1 de 1. El smoke inyectó IncidenciaMemoryRepo, conservó las comprobaciones originales de CampusOps y health disponible, y no realizó la consulta HTTP incidental observada antes del aislamiento. Permaneció sólo la advertencia de SafeAreaView."
     },
     {
       "command": "git diff --check",

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "week": 5,
+  "commitSha": "1c28f9dd12ea8244a062d388b7d0d8e8993ecc86",
+  "generatedAt": "2026-10-05T04:02:39.422Z",
+  "scope": "Fallas observadas para parser, transporte y consultas implementadas por Danna. No cubre escrituras ni idempotencia.",
+  "checks": [
+    {
+      "id": "mock-invalid-json-and-contract",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__",
+      "evidence": "La regresión de 110 pruebas rechazó JSON sintácticamente inválido, contenedores de lista inválidos y JSON válido con payload de incidencia fuera de contrato; ninguno se convirtió en lista vacía."
+    },
+    {
+      "id": "mock-http-statuses",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__",
+      "evidence": "Los dobles deterministas conservaron 403 forbidden, 404 not_found y 500 controlled_failure como errores HTTP distinguibles."
+    },
+    {
+      "id": "mock-timeout-network-and-late-results",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/courseHttpClient.test.ts src/__tests__/incidentScreens.test.tsx",
+      "evidence": "PASS: el timeout cubrió fetch y lectura del cuerpo, limpió timers y mantuvo timeout ante respuesta o rechazo tardío; network quedó separado y las pantallas ignoraron respuestas obsoletas."
+    },
+    {
+      "id": "mock-sanitized-transport-log",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/courseHttpClient.test.ts",
+      "evidence": "PASS: el log técnico de falla no incluyó Authorization, course-valid-token ni el valor sensible del cuerpo remoto simulado."
+    },
+    {
+      "id": "integration-malformed-slow-server-error",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand course-tests/integration/week-05-client-local.test.ts",
+      "evidence": "PASS contra backend local: malformed produjo invalid_json, slow produjo timeout y server_error conservó status 500 y code controlled_failure."
+    }
+  ],
+  "limitations": [
+    "El self-test del backend se conserva como comprobación separada y no se presenta como integración del cliente.",
+    "No existen resultados de POST, Idempotency-Key ni timeout posterior al commit porque creación sigue pendiente.",
+    "make verify-week-05 no se ejecutó por ausencia de GNU Make."
+  ]
+}

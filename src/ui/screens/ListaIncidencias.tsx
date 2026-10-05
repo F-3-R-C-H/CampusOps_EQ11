@@ -6,11 +6,19 @@
  * NUNCA importa directamente desde infrastructure/.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import type { Incidencia } from '../../domain/models/Incidencia';
 import { GetIncidencias } from '../../application/usecases/GetIncidencias';
 import type { IIncidenciaRepository } from '../../domain/ports/IIncidenciaRepository';
+import { incidentQueryMessage } from '../incidentQueryMessage';
+
+type ListState =
+  | Readonly<{ kind: 'loading' }>
+  | Readonly<{ kind: 'data'; incidents: readonly Incidencia[]; unavailableCount: number }>
+  | Readonly<{ kind: 'empty' }>
+  | Readonly<{ kind: 'payload_absent'; count: number }>
+  | Readonly<{ kind: 'error'; message: string }>;
 
 const STATUS_LABELS: Record<string, string> = {
   open: 'Abierta',
@@ -44,22 +52,45 @@ interface Props {
 }
 
 export function ListaIncidencias({ repository, onSelectIncidencia }: Props) {
-  const [incidencias, setIncidencias] = useState<Incidencia[] | null>(null);
+  const [state, setState] = useState<ListState>({ kind: 'loading' });
+  const [attempt, setAttempt] = useState(0);
+  const activeRequest = useRef(0);
 
   const loadData = useCallback(async () => {
     const useCase = new GetIncidencias(repository);
     return useCase.execute();
   }, [repository]);
+  const retry = () => {
+    setState({ kind: 'loading' });
+    setAttempt((value) => value + 1);
+  };
 
   useEffect(() => {
-    let cancelled = false;
-    loadData().then((data) => {
-      if (!cancelled) setIncidencias(data);
-    });
-    return () => { cancelled = true; };
-  }, [loadData]);
+    const requestId = ++activeRequest.current;
+    loadData()
+      .then((result) => {
+        if (activeRequest.current !== requestId) return;
+        if (!result.ok) {
+          setState({ kind: 'error', message: incidentQueryMessage(result.error) });
+        } else if (result.kind === 'empty') {
+          setState({ kind: 'empty' });
+        } else if (result.kind === 'payload_absent') {
+          setState({ kind: 'payload_absent', count: result.unavailable.length });
+        } else {
+          setState({ kind: 'data', incidents: result.incidents, unavailableCount: result.unavailable.length });
+        }
+      })
+      .catch(() => {
+        if (activeRequest.current === requestId) {
+          setState({ kind: 'error', message: 'No fue posible completar la consulta.' });
+        }
+      });
+    return () => {
+      if (activeRequest.current === requestId) activeRequest.current += 1;
+    };
+  }, [attempt, loadData]);
 
-  if (incidencias === null) {
+  if (state.kind === 'loading') {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#1976D2" />
@@ -68,10 +99,50 @@ export function ListaIncidencias({ repository, onSelectIncidencia }: Props) {
     );
   }
 
+  if (state.kind === 'error') {
+    return (
+      <View style={styles.center} testID="lista-error">
+        <Text style={styles.errorText}>{state.message}</Text>
+        <Pressable style={styles.retryButton} onPress={retry}>
+          <Text style={styles.retryText}>Reintentar</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (state.kind === 'empty') {
+    return (
+      <View style={styles.center} testID="lista-vacia">
+        <Text>No hay incidencias visibles.</Text>
+        <Pressable style={styles.retryButton} onPress={retry}>
+          <Text style={styles.retryText}>Actualizar</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  if (state.kind === 'payload_absent') {
+    return (
+      <View style={styles.center} testID="lista-payload-ausente">
+        <Text>{state.count} incidencia(s) sin datos disponibles.</Text>
+        <Pressable style={styles.retryButton} onPress={retry}>
+          <Text style={styles.retryText}>Reintentar</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const incidencias = state.incidents;
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Incidencias del Campus</Text>
       <Text style={styles.subtitle}>{incidencias.length} incidencia(s) registrada(s)</Text>
+      {state.unavailableCount > 0 ? (
+        <Text style={styles.warning} testID="lista-payload-parcial">
+          {state.unavailableCount} incidencia(s) sin datos disponibles.
+        </Text>
+      ) : null}
       <FlatList
         data={incidencias}
         keyExtractor={(item) => item.id}
@@ -102,8 +173,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 12, color: '#666', fontSize: 14 },
+  errorText: { color: '#B00020', fontSize: 15, textAlign: 'center', marginBottom: 12 },
+  retryButton: { backgroundColor: '#1976D2', borderRadius: 6, paddingHorizontal: 16, paddingVertical: 10, marginTop: 12 },
+  retryText: { color: '#FFF', fontWeight: '600' },
   header: { fontSize: 22, fontWeight: '700', paddingHorizontal: 16, paddingTop: 16 },
   subtitle: { fontSize: 13, color: '#888', paddingHorizontal: 16, paddingBottom: 8 },
+  warning: { fontSize: 13, color: '#8A5A00', paddingHorizontal: 16, paddingBottom: 8 },
   list: { paddingHorizontal: 16, paddingBottom: 16 },
   card: {
     backgroundColor: '#FFFFFF',
