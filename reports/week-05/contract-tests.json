@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "week": 5,
-  "commitSha": "670d830de628c25712a2974a55fc1ee36a37d477",
-  "generatedAt": "2026-10-05T02:50:27.655Z",
-  "scope": "Avance del bloque de Danna: contrato del sobre, validación del payload y mapeo DTO a dominio. No acredita transporte, consultas cloud ni creación.",
+  "commitSha": "1c28f9dd12ea8244a062d388b7d0d8e8993ecc86",
+  "generatedAt": "2026-10-05T04:02:39.422Z",
+  "scope": "Avance implementado por Danna: contrato, mapeo, transporte y consultas de lista/detalle. Incluye mocks deterministas e integración del cliente contra el backend local; no acredita creación ni idempotencia.",
   "limitations": [
     "make verify-week-05 no se ejecutó porque GNU Make no está disponible en el entorno.",
     "El self-test del backend verifica el fixture local, no un cliente de incidencias de la aplicación.",
-    "Timeout, HTTP 500 y otras fallas de transporte quedan pendientes y no se registran como aprobadas en este reporte."
+    "Creación, generación/reutilización de Idempotency-Key y timeout posterior al commit no están implementados ni se registran como aprobados."
   ],
   "checks": [
     {
@@ -29,7 +29,7 @@
       "status": "pass",
       "scenarioType": "nominal",
       "command": "npm test -- --ci --runInBand src/__tests__",
-      "evidence": "PASS: 3 suites y 76 pruebas. Este total ya incluye las 38 pruebas propias del parser y mapper."
+      "evidence": "PASS: 6 suites y 110 pruebas. Este total incluye parser/mapper, transporte, repositorio y pantallas; no se suma con sus subconjuntos."
     },
     {
       "id": "typescript-contracts",
@@ -46,18 +46,25 @@
       "evidence": "PASS: eslint . terminó con código 0."
     },
     {
-      "id": "teaching-backend-contract",
+      "id": "real-client-local-integration",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand course-tests/integration/week-05-client-local.test.ts",
+      "evidence": "PASS: CourseHttpClient e IncidenciaApiRepository usaron HTTP real contra un backend local en puerto dinámico. success produjo data; nullable, payload_absent; malformed, invalid_json; slow, timeout; server_error, HTTP 500 controlled_failure."
+    },
+    {
+      "id": "teaching-backend-self-test",
       "status": "pass",
       "scenarioType": "nominal",
       "command": "npm run backend:self-test",
-      "evidence": "PASS del backend didáctico local. Comprueba el fixture y sus contratos, pero no demuestra un cliente de incidencias en la aplicación."
+      "evidence": "PASS del fixture didáctico. Esta comprobación es exclusiva del backend y no sustituye la integración del cliente."
     },
     {
-      "id": "smoke-isolated-retry",
+      "id": "smoke-with-injected-repository",
       "status": "pass",
       "scenarioType": "boundary",
       "command": "npm run test:smoke",
-      "evidence": "La primera ejecución en paralelo agotó el timeout de Jest; al repetir el mismo comando aisladamente pasó 1 de 1 prueba."
+      "evidence": "PASS: 1 de 1. Conservó las comprobaciones originales e inyectó el repositorio en memoria para evitar HTTP incidental; sólo se observó la advertencia de SafeAreaView."
     }
   ]
 }

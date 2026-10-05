@@ -8,7 +8,9 @@
       "commitShas": [
         "670d830de628c25712a2974a55fc1ee36a37d477",
         "027f20e066a4c6c28321fd28155e7557017af724",
-        "3cca9697cc381323a5094961bb38a105675e00a7"
+        "3cca9697cc381323a5094961bb38a105675e00a7",
+        "bcb1293ba44be1c6a9f4c3050c472f861f5f1e7d",
+        "1c28f9dd12ea8244a062d388b7d0d8e8993ecc86"
       ],
       "files": [
         "src/domain/remote/RemoteResource.ts",
@@ -18,19 +20,52 @@
         "src/domain/models/Incidencia.ts",
         "src/campusops/contracts.ts",
         "src/__tests__/incidentMapper.test.ts",
+        "App.tsx",
+        "course-tests/smoke.test.tsx",
+        "src/api/courseBackend.ts",
+        "src/config/courseBackend.ts",
+        "src/application/usecases/GetIncidencias.ts",
+        "src/infrastructure/http/CourseHttpClient.ts",
+        "src/infrastructure/api/IncidenciaApiRepository.ts",
+        "src/domain/ports/IIncidenciaRepository.ts",
+        "src/infrastructure/memory/IncidenciaMemoryRepo.ts",
+        "src/ui/incidentQueryMessage.ts",
+        "src/ui/screens/ListaIncidencias.tsx",
+        "src/ui/screens/DetalleIncidencia.tsx",
+        "src/__tests__/courseHttpClient.test.ts",
+        "src/__tests__/incidenciaApiRepository.test.ts",
+        "src/__tests__/incidentScreens.test.tsx",
+        "course-tests/integration/week-05-client-local.test.ts",
+        "course-tests/integration/README.md",
         "docs/api-contract.md",
         "evidence/week-05/engineering.json",
         "reports/week-05/contract-tests.json"
       ],
       "tests": [
         "course-tests/public/week-05.test.ts",
-        "src/__tests__/incidentMapper.test.ts"
+        "src/__tests__/incidentMapper.test.ts",
+        "src/__tests__/courseHttpClient.test.ts",
+        "src/__tests__/incidenciaApiRepository.test.ts",
+        "src/__tests__/incidentScreens.test.tsx",
+        "course-tests/integration/week-05-client-local.test.ts",
+        "course-tests/smoke.test.tsx"
       ],
       "reviews": [],
       "prediction": "Para esta nueva comprobación de evidencia, ejecutada después de implementar el bloque y de las verificaciones anteriores, se espera que las 38 pruebas de incidentMapper.test.ts pasen porque cubren la validación del sobre, del payload y del mapeo sin fabricar title ni createdAt.",
       "command": "npm test -- --ci --runInBand src/__tests__/incidentMapper.test.ts",
       "observedResult": "PASS: 1 suite, 38 pruebas aprobadas, 0 snapshots; tiempo informado por Jest: 3.776 s. Se ejecutó incidentMapper.test.ts completo.",
-      "explanation": "Implementé el bloque de contrato de Semana 05: integré el material docente, extraje la validación compartida del sobre remoto, mantuve el adaptador evaluable con su firma pública, validé por separado el payload real de incidencia y añadí un mapper DTO a dominio con resultados discriminados para incident, absent e invalid. La decisión conserva payload null con id, version y status, permite campos adicionales sin copiarlos al dominio y mantiene title y createdAt como metadatos locales opcionales que el mapper remoto nunca fabrica. Escribí pruebas deterministas sin red y documenté que transporte HTTP, timeout, consultas cloud, creación e idempotencia siguen pendientes. Los campos prediction y observedResult de este registro corresponden a una nueva ejecución de evidencia realizada después de la implementación y de las verificaciones anteriores; no se presentan como una predicción previa a las primeras pruebas del bloque. OpenCode asistió en la inspección del repositorio, edición del código, ejecución automatizada de comandos y redacción inicial de esta evidencia; los resultados registrados proceden de las salidas observadas de Jest, TypeScript, ESLint, el self-test local y Git. No se afirma una revisión humana del código ni una ejecución manual de la aplicación que no hayan sido confirmadas."
+      "explanation": "Implementé los bloques de contrato y consultas de Semana 05: integré el material docente, extraje la validación compartida del sobre remoto, mantuve el adaptador evaluable con su firma pública, validé por separado el payload y añadí el mapper DTO a dominio. Después implementé CourseHttpClient con timeout durante fetch y lectura del cuerpo, cancelación, limpieza de timers, errores discriminados y logs sin cuerpos ni autorización; implementé IncidenciaApiRepository para lista/detalle, adapté el puerto, los casos de uso, la composición y los estados de UI, y aislé el smoke mediante inyección. Conservé una integración reproducible que levanta el backend local en puerto dinámico y comprueba success, nullable, malformed, slow y server_error con el cliente real. payload null conserva metadatos y no fabrica incidencias; una lista corrupta no se convierte en vacía. Creación e idempotencia siguen pendientes. Los campos prediction y observedResult de este registro corresponden a una nueva ejecución de evidencia del mapper realizada después de la implementación inicial; no se presentan como predicción previa a las primeras pruebas. OpenCode asistió en inspección, edición, ejecución automatizada y redacción; los resultados proceden de salidas observadas de Jest, TypeScript, ESLint, backend local y Git. No se afirma una revisión humana ni ejecución manual no confirmada."
+    },
+    {
+      "studentId": "3523110683",
+      "commitShas": [],
+      "files": [],
+      "tests": [],
+      "reviews": [],
+      "prediction": "",
+      "command": "",
+      "observedResult": "",
+      "explanation": "El bloque de consultas estaba asignado a Fernando, pero Danna realizó la implementación y las verificaciones registradas. No hay todavía una aportación personal, commit, prueba, revisión, predicción, comando ni resultado confirmados para Fernando; esos campos permanecen vacíos y no se atribuyen a él los commits de Danna."
     }
   ]
 }
