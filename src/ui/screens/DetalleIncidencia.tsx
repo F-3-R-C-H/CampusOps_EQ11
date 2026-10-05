@@ -94,7 +94,7 @@ export function DetalleIncidencia({ repository, incidenciaId, onBack }: Props) {
         </View>
       </View>
 
-      <Text style={styles.title}>{incidencia.title}</Text>
+      <Text style={styles.title}>{incidencia.title ?? incidencia.description}</Text>
       <Text style={styles.category}>{CATEGORY_LABELS[incidencia.category] ?? incidencia.category}</Text>
 
       <View style={styles.section}>
@@ -117,10 +117,12 @@ export function DetalleIncidencia({ repository, incidenciaId, onBack }: Props) {
           <Text style={styles.label}>Técnico asignado:</Text>
           <Text style={styles.value}>{incidencia.assignedTechnicianId ?? 'Sin asignar'}</Text>
         </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.label}>Fecha de creación:</Text>
-          <Text style={styles.value}>{new Date(incidencia.createdAt).toLocaleString('es-MX')}</Text>
-        </View>
+        {incidencia.createdAt ? (
+          <View style={styles.detailRow}>
+            <Text style={styles.label}>Fecha de creación:</Text>
+            <Text style={styles.value}>{new Date(incidencia.createdAt).toLocaleString('es-MX')}</Text>
+          </View>
+        ) : null}
       </View>
     </ScrollView>
   );

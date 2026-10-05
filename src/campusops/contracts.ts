@@ -4,6 +4,7 @@ export type IncidentStatus = 'open' | 'assigned' | 'in_progress' | 'resolved' | 
 export type IncidentCategory =
   | 'electrical' | 'laboratory' | 'water' | 'connectivity'
   | 'equipment' | 'safety' | 'maintenance';
+export type IncidentPriority = 'low' | 'medium' | 'high';
 
 export type IncidentWork = Readonly<{
   assignedTechnicianId: string | null;

@@ -1,8 +1,10 @@
-export type JsonObject = Readonly<Record<string, unknown>>;
+import type {
+  JsonObject as RemoteJsonObject,
+  RemoteResourceParseResult,
+} from '../domain/remote/RemoteResource';
 
-export type ParseResult =
-  | Readonly<{ ok: true; value: { id: string; version: number; status: string; payload: JsonObject | null } }>
-  | Readonly<{ ok: false; error: 'contract' }>;
+export type JsonObject = RemoteJsonObject;
+export type ParseResult = RemoteResourceParseResult;
 
 export type AuthEvent = Readonly<{
   type: 'request401' | 'refreshSucceeded' | 'refreshFailed' | 'logout';
