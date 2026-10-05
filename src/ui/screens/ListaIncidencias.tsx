@@ -87,7 +87,7 @@ export function ListaIncidencias({ repository, onSelectIncidencia }: Props) {
                 <Text style={styles.statusText}>{STATUS_LABELS[item.status] ?? item.status}</Text>
               </View>
             </View>
-            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardTitle}>{item.title ?? item.description}</Text>
             <Text style={styles.cardCategory}>{CATEGORY_LABELS[item.category] ?? item.category}</Text>
             <Text style={styles.cardLocation}>📍 {item.location}</Text>
           </Pressable>
