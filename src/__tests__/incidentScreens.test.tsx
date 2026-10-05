@@ -32,7 +32,7 @@ function repository(
     incident,
   }),
 ): IIncidenciaRepository {
-  return { getAll, getById };
+  return { getAll, getById, create: jest.fn() };
 }
 
 describe('ListaIncidencias query states', () => {

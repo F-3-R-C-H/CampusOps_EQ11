@@ -7,7 +7,9 @@
  */
 
 import type { Incidencia } from '../../domain/models/Incidencia';
+import type { NewIncidentInput } from '../../domain/models/NewIncident';
 import type {
+  CreateIncidentResult,
   IIncidenciaRepository,
   IncidentDetailResult,
   IncidentListResult,
@@ -130,6 +132,8 @@ const SEED_DATA: Incidencia[] = [
 
 export class IncidenciaMemoryRepo implements IIncidenciaRepository {
   private readonly data: Incidencia[] = [...SEED_DATA];
+  private readonly operations = new Map<string, Readonly<{ fingerprint: string; incident: Incidencia }>>();
+  private sequence = SEED_DATA.length;
 
   async getAll(): Promise<IncidentListResult> {
     if (this.data.length === 0) return { ok: true, kind: 'empty', incidents: [], unavailable: [] };
@@ -141,5 +145,39 @@ export class IncidenciaMemoryRepo implements IIncidenciaRepository {
     return incident
       ? { ok: true, kind: 'data', incident }
       : { ok: false, error: { kind: 'http', status: 404, code: 'not_found' } };
+  }
+
+  /**
+   * Creación determinista con la misma semántica de idempotencia que el
+   * backend: misma clave y contenido = replay; misma clave y otro contenido
+   * = conflicto. No fabrica title ni createdAt.
+   */
+  async create(input: NewIncidentInput, idempotencyKey: string): Promise<CreateIncidentResult> {
+    const fingerprint = JSON.stringify([input.category, input.description, input.location]);
+    const previous = this.operations.get(idempotencyKey);
+    if (previous) {
+      return previous.fingerprint === fingerprint
+        ? { ok: true, kind: 'replayed', incident: previous.incident, operationId: idempotencyKey }
+        : { ok: false, error: { kind: 'idempotency_conflict' } };
+    }
+
+    this.sequence += 1;
+    const incident: Incidencia = {
+      id: `INC-${String(this.sequence).padStart(3, '0')}`,
+      version: 1,
+      description: input.description,
+      category: input.category,
+      status: 'open',
+      reporterId: 'USR-LOCAL',
+      assignedTechnicianId: null,
+      location: input.location,
+      priority: 'medium',
+      notes: [],
+      evidence: [],
+      history: [],
+    };
+    this.data.push(incident);
+    this.operations.set(idempotencyKey, { fingerprint, incident });
+    return { ok: true, kind: 'created', incident, operationId: idempotencyKey };
   }
 }
