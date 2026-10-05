@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "week": 5,
+  "commitSha": "670d830de628c25712a2974a55fc1ee36a37d477",
+  "decision": "En el bloque de contrato implementado por Danna, CampusOps valida primero el sobre remoto compartido y después valida el payload específico de incidencia. El adaptador evaluable parseRemoteResource conserva su firma pública y delega en src/domain/remote/RemoteResource.ts. El mapper sólo construye una Incidencia cuando sobre, estado y payload son válidos; un payload null produce un resultado absent que conserva id, version y status, y los datos inválidos producen razones discriminadas. El DTO remoto se proyecta al modelo de aplicación sin copiar campos futuros ni inventar title o createdAt.",
+  "alternatives": [
+    "Validar el sobre y todos los campos de incidencia dentro de parseRemoteResource habría reducido archivos, pero habría acoplado un contrato remoto genérico al dominio CampusOps y habría cambiado el alcance de la firma pública evaluable.",
+    "Usar aserciones de TypeScript para convertir directamente response.json() en Incidencia habría sido más corto, pero no validaría datos en ejecución ni distinguiría payload null de objetos corruptos.",
+    "Fabricar title y createdAt a partir de description o de la hora local habría conservado la interfaz anterior sin cambios, pero presentaría como remotos valores que el backend no entrega. Se conservaron como metadatos locales opcionales y el mapper los omite."
+  ],
+  "tradeoff": "La separación entre parser de sobre, parser de payload y mapper permite reutilizar el límite remoto, probar cada responsabilidad sin red y conservar una unión distinguible entre incident, absent e invalid. El costo es introducir tipos y archivos adicionales y mantener title/createdAt opcionales mientras existe el repositorio en memoria. Los campos adicionales se aceptan para compatibilidad futura, pero sólo los campos conocidos y validados pasan al dominio. Esta decisión no implementa transporte, timeout, manejo HTTP, consultas ni creación; esas comprobaciones siguen pendientes en los otros bloques.",
+  "requirementIds": ["AC-02", "AC-03", "AC-04", "AC-05"],
+  "verification": [
+    {
+      "command": "npm test -- --ci --runInBand course-tests/public/week-05.test.ts",
+      "result": "pass",
+      "evidence": "La prueba pública de Semana 05 terminó con 1 suite y 5 pruebas aprobadas sobre la firma pública de parseRemoteResource."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/__tests__/incidentMapper.test.ts",
+      "result": "pass",
+      "evidence": "La suite propia terminó con 1 suite y 38 pruebas aprobadas; cubrió sobre, payload, campos adicionales, payload null, DTO a dominio y ausencia de title/createdAt inventados."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/__tests__",
+      "result": "pass",
+      "evidence": "La regresión local terminó con 3 suites y 76 pruebas aprobadas. Las 38 pruebas de incidentMapper están incluidas en este total y no se contabilizan como pruebas adicionales."
+    },
+    {
+      "command": "npm run typecheck",
+      "result": "pass",
+      "evidence": "tsc --noEmit terminó con código 0 para el bloque técnico."
+    },
+    {
+      "command": "npm run lint",
+      "result": "pass",
+      "evidence": "eslint . terminó con código 0 para el bloque técnico."
+    },
+    {
+      "command": "npm run backend:self-test",
+      "result": "pass",
+      "evidence": "El backend didáctico informó PASS para sus contratos locales. Este resultado valida el fixture, no demuestra que el cliente de incidencias pendiente funcione."
+    },
+    {
+      "command": "npm run test:smoke",
+      "result": "pass_after_isolated_retry",
+      "evidence": "La primera ejecución simultánea con otras verificaciones agotó el timeout de Jest. El mismo comando, repetido aisladamente, terminó con 1 prueba aprobada."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass",
+      "evidence": "La comprobación terminó con código 0 antes de cerrar los commits técnicos."
+    }
+  ]
+}

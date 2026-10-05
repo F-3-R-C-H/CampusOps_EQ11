@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "week": 5,
+  "commitSha": "670d830de628c25712a2974a55fc1ee36a37d477",
+  "generatedAt": "2026-10-05T02:50:27.655Z",
+  "scope": "Avance del bloque de Danna: contrato del sobre, validación del payload y mapeo DTO a dominio. No acredita transporte, consultas cloud ni creación.",
+  "limitations": [
+    "make verify-week-05 no se ejecutó porque GNU Make no está disponible en el entorno.",
+    "El self-test del backend verifica el fixture local, no un cliente de incidencias de la aplicación.",
+    "Timeout, HTTP 500 y otras fallas de transporte quedan pendientes y no se registran como aprobadas en este reporte."
+  ],
+  "checks": [
+    {
+      "id": "public-remote-resource-contract",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-05.test.ts",
+      "evidence": "PASS: 1 suite y 5 pruebas. El adaptador público aceptó recursos válidos, incluido payload null, y rechazó los casos inválidos publicados."
+    },
+    {
+      "id": "parser-and-mapper-boundaries",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/incidentMapper.test.ts",
+      "evidence": "PASS: 1 suite y 38 pruebas. Se comprobaron raíces inválidas, textos vacíos, versiones negativas/no enteras, payload arreglo, campos adicionales, payload null y separación DTO/dominio."
+    },
+    {
+      "id": "local-regression",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/__tests__",
+      "evidence": "PASS: 3 suites y 76 pruebas. Este total ya incluye las 38 pruebas propias del parser y mapper."
+    },
+    {
+      "id": "typescript-contracts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run typecheck",
+      "evidence": "PASS: tsc --noEmit terminó con código 0."
+    },
+    {
+      "id": "static-style-check",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run lint",
+      "evidence": "PASS: eslint . terminó con código 0."
+    },
+    {
+      "id": "teaching-backend-contract",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run backend:self-test",
+      "evidence": "PASS del backend didáctico local. Comprueba el fixture y sus contratos, pero no demuestra un cliente de incidencias en la aplicación."
+    },
+    {
+      "id": "smoke-isolated-retry",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm run test:smoke",
+      "evidence": "La primera ejecución en paralelo agotó el timeout de Jest; al repetir el mismo comando aisladamente pasó 1 de 1 prueba."
+    }
+  ]
+}
