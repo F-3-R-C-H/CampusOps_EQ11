@@ -5,17 +5,20 @@
  * No conoce la implementación concreta (memory, API, etc.).
  */
 
-import type { Incidencia } from '../../domain/models/Incidencia';
-import type { IIncidenciaRepository } from '../../domain/ports/IIncidenciaRepository';
+import type {
+  IIncidenciaRepository,
+  IncidentDetailResult,
+  IncidentListResult,
+} from '../../domain/ports/IIncidenciaRepository';
 
 export class GetIncidencias {
   constructor(private readonly repository: IIncidenciaRepository) {}
 
-  async execute(): Promise<Incidencia[]> {
+  async execute(): Promise<IncidentListResult> {
     return this.repository.getAll();
   }
 
-  async executeById(id: string): Promise<Incidencia | null> {
+  async executeById(id: string): Promise<IncidentDetailResult> {
     return this.repository.getById(id);
   }
 }

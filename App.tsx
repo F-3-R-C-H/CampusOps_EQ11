@@ -2,7 +2,7 @@
  * App.tsx — Punto de entrada de CampusOps
  *
  * La inyección de dependencias ocurre aquí: App crea el repositorio concreto
- * (IncidenciaMemoryRepo) y lo pasa a las pantallas de UI.
+ * (IncidenciaApiRepository) y lo pasa a las pantallas de UI.
  * Las pantallas NUNCA importan directamente desde infrastructure/.
  */
 
@@ -11,21 +11,33 @@ import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import { getBackendHealth } from './src/api/courseBackend';
-import { IncidenciaMemoryRepo } from './src/infrastructure/memory/IncidenciaMemoryRepo';
+import { getCourseActor, getCourseBackendBaseUrl, getCourseScenario } from './src/config/courseBackend';
+import { IncidenciaApiRepository } from './src/infrastructure/api/IncidenciaApiRepository';
+import { CourseHttpClient } from './src/infrastructure/http/CourseHttpClient';
+import type { IIncidenciaRepository } from './src/domain/ports/IIncidenciaRepository';
 import { ListaIncidencias } from './src/ui/screens/ListaIncidencias';
 import { DetalleIncidencia } from './src/ui/screens/DetalleIncidencia';
 
 // Inyección de dependencias: se crea la implementación concreta aquí
 // y se pasa como contrato a las pantallas de UI.
-const repository = new IncidenciaMemoryRepo();
+const baseUrl = getCourseBackendBaseUrl();
+const scenario = getCourseScenario();
+const httpClient = new CourseHttpClient({
+  baseUrl,
+  actorId: getCourseActor(),
+  ...(scenario ? { scenario } : {}),
+});
+const defaultRepository = new IncidenciaApiRepository(httpClient);
 
-export default function App() {
+type AppProps = Readonly<{ repository?: IIncidenciaRepository }>;
+
+export default function App({ repository = defaultRepository }: AppProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'available' | 'offline'>('checking');
 
   useEffect(() => {
     let active = true;
-    getBackendHealth()
+    getBackendHealth(baseUrl)
       .then(() => active && setBackendStatus('available'))
       .catch(() => active && setBackendStatus('offline'));
     return () => { active = false; };

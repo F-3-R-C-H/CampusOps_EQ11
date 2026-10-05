@@ -7,7 +7,11 @@
  */
 
 import type { Incidencia } from '../../domain/models/Incidencia';
-import type { IIncidenciaRepository } from '../../domain/ports/IIncidenciaRepository';
+import type {
+  IIncidenciaRepository,
+  IncidentDetailResult,
+  IncidentListResult,
+} from '../../domain/ports/IIncidenciaRepository';
 
 const SEED_DATA: Incidencia[] = [
   {
@@ -127,11 +131,15 @@ const SEED_DATA: Incidencia[] = [
 export class IncidenciaMemoryRepo implements IIncidenciaRepository {
   private readonly data: Incidencia[] = [...SEED_DATA];
 
-  async getAll(): Promise<Incidencia[]> {
-    return [...this.data];
+  async getAll(): Promise<IncidentListResult> {
+    if (this.data.length === 0) return { ok: true, kind: 'empty', incidents: [], unavailable: [] };
+    return { ok: true, kind: 'data', incidents: [...this.data], unavailable: [] };
   }
 
-  async getById(id: string): Promise<Incidencia | null> {
-    return this.data.find((inc) => inc.id === id) ?? null;
+  async getById(id: string): Promise<IncidentDetailResult> {
+    const incident = this.data.find((item) => item.id === id);
+    return incident
+      ? { ok: true, kind: 'data', incident }
+      : { ok: false, error: { kind: 'http', status: 404, code: 'not_found' } };
   }
 }

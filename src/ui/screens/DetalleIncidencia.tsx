@@ -6,11 +6,18 @@
  * NUNCA importa directamente desde infrastructure/.
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import type { Incidencia } from '../../domain/models/Incidencia';
 import { GetIncidencias } from '../../application/usecases/GetIncidencias';
 import type { IIncidenciaRepository } from '../../domain/ports/IIncidenciaRepository';
+import { incidentQueryMessage } from '../incidentQueryMessage';
+
+type DetailState =
+  | Readonly<{ kind: 'loading' }>
+  | Readonly<{ kind: 'data'; incident: Incidencia }>
+  | Readonly<{ kind: 'payload_absent'; id: string }>
+  | Readonly<{ kind: 'error'; message: string }>;
 
 const STATUS_LABELS: Record<string, string> = {
   open: 'Abierta',
@@ -45,24 +52,42 @@ interface Props {
 }
 
 export function DetalleIncidencia({ repository, incidenciaId, onBack }: Props) {
-  const [incidencia, setIncidencia] = useState<Incidencia | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<DetailState>({ kind: 'loading' });
+  const [attempt, setAttempt] = useState(0);
+  const activeRequest = useRef(0);
+  const loadData = useCallback(() => {
+    const useCase = new GetIncidencias(repository);
+    return useCase.executeById(incidenciaId);
+  }, [incidenciaId, repository]);
+  const retry = () => {
+    setState({ kind: 'loading' });
+    setAttempt((value) => value + 1);
+  };
 
   useEffect(() => {
-    let active = true;
-    const useCase = new GetIncidencias(repository);
-    useCase.executeById(incidenciaId).then((data) => {
-      if (active) {
-        setIncidencia(data);
-        setLoading(false);
-      }
-    });
+    const requestId = ++activeRequest.current;
+    loadData()
+      .then((result) => {
+        if (activeRequest.current !== requestId) return;
+        if (!result.ok) {
+          setState({ kind: 'error', message: incidentQueryMessage(result.error) });
+        } else if (result.kind === 'payload_absent') {
+          setState({ kind: 'payload_absent', id: result.resource.id });
+        } else {
+          setState({ kind: 'data', incident: result.incident });
+        }
+      })
+      .catch(() => {
+        if (activeRequest.current === requestId) {
+          setState({ kind: 'error', message: 'No fue posible completar la consulta.' });
+        }
+      });
     return () => {
-      active = false;
+      if (activeRequest.current === requestId) activeRequest.current += 1;
     };
-  }, [repository, incidenciaId]);
+  }, [attempt, loadData]);
 
-  if (loading) {
+  if (state.kind === 'loading') {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#1976D2" />
@@ -70,16 +95,23 @@ export function DetalleIncidencia({ repository, incidenciaId, onBack }: Props) {
     );
   }
 
-  if (!incidencia) {
+  if (state.kind === 'error' || state.kind === 'payload_absent') {
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>Incidencia no encontrada</Text>
+      <View style={styles.center} testID={state.kind === 'error' ? 'detalle-error' : 'detalle-payload-ausente'}>
+        <Text style={styles.errorText}>
+          {state.kind === 'error' ? state.message : `La incidencia ${state.id} no tiene datos disponibles.`}
+        </Text>
+        <Pressable style={styles.retryButton} onPress={retry}>
+          <Text style={styles.retryText}>Reintentar</Text>
+        </Pressable>
         <Pressable style={styles.backButton} onPress={onBack}>
           <Text style={styles.backButtonText}>← Volver a la lista</Text>
         </Pressable>
       </View>
     );
   }
+
+  const incidencia = state.incident;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -133,6 +165,8 @@ const styles = StyleSheet.create({
   content: { padding: 16 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   errorText: { fontSize: 16, color: '#F44336', marginBottom: 16 },
+  retryButton: { backgroundColor: '#1976D2', borderRadius: 6, paddingHorizontal: 16, paddingVertical: 10, marginBottom: 16 },
+  retryText: { color: '#FFF', fontWeight: '600' },
   backButton: { marginBottom: 16 },
   backButtonText: { fontSize: 14, color: '#1976D2', fontWeight: '600' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
