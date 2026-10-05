@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "week": 5,
+  "teamId": "EQ11",
+  "members": [
+    {
+      "studentId": "3523110097",
+      "commitShas": [
+        "670d830de628c25712a2974a55fc1ee36a37d477",
+        "027f20e066a4c6c28321fd28155e7557017af724",
+        "3cca9697cc381323a5094961bb38a105675e00a7"
+      ],
+      "files": [
+        "src/domain/remote/RemoteResource.ts",
+        "src/infrastructure/api/incidentMapper.ts",
+        "src/course-evaluation/index.ts",
+        "src/course-evaluation/contracts.ts",
+        "src/domain/models/Incidencia.ts",
+        "src/campusops/contracts.ts",
+        "src/__tests__/incidentMapper.test.ts",
+        "docs/api-contract.md",
+        "evidence/week-05/engineering.json",
+        "reports/week-05/contract-tests.json"
+      ],
+      "tests": [
+        "course-tests/public/week-05.test.ts",
+        "src/__tests__/incidentMapper.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Para esta nueva comprobación de evidencia, ejecutada después de implementar el bloque y de las verificaciones anteriores, se espera que las 38 pruebas de incidentMapper.test.ts pasen porque cubren la validación del sobre, del payload y del mapeo sin fabricar title ni createdAt.",
+      "command": "npm test -- --ci --runInBand src/__tests__/incidentMapper.test.ts",
+      "observedResult": "PASS: 1 suite, 38 pruebas aprobadas, 0 snapshots; tiempo informado por Jest: 3.776 s. Se ejecutó incidentMapper.test.ts completo.",
+      "explanation": "Implementé el bloque de contrato de Semana 05: integré el material docente, extraje la validación compartida del sobre remoto, mantuve el adaptador evaluable con su firma pública, validé por separado el payload real de incidencia y añadí un mapper DTO a dominio con resultados discriminados para incident, absent e invalid. La decisión conserva payload null con id, version y status, permite campos adicionales sin copiarlos al dominio y mantiene title y createdAt como metadatos locales opcionales que el mapper remoto nunca fabrica. Escribí pruebas deterministas sin red y documenté que transporte HTTP, timeout, consultas cloud, creación e idempotencia siguen pendientes. Los campos prediction y observedResult de este registro corresponden a una nueva ejecución de evidencia realizada después de la implementación y de las verificaciones anteriores; no se presentan como una predicción previa a las primeras pruebas del bloque. OpenCode asistió en la inspección del repositorio, edición del código, ejecución automatizada de comandos y redacción inicial de esta evidencia; los resultados registrados proceden de las salidas observadas de Jest, TypeScript, ESLint, el self-test local y Git. No se afirma una revisión humana del código ni una ejecución manual de la aplicación que no hayan sido confirmadas."
+    }
+  ]
+}
