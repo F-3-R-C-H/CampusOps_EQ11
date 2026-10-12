@@ -1,0 +1,31 @@
+stateDiagram-v2
+    [*] --> Anonymous
+
+    Anonymous --> Refreshing: request401(generation)
+    Authenticated --> Refreshing: request401(active generation)
+    Authenticated --> Authenticated: request401(older generation) / retry once
+
+    state Refreshing {
+        [*] --> SingleFlight
+        SingleFlight --> SingleFlight: concurrent request401 / join and deduplicate
+    }
+
+    Refreshing --> Authenticated: refreshSucceeded(new generation) / retry waiting requests once
+    Refreshing --> Anonymous: refreshFailed / discard represented persisted token
+    Refreshing --> Anonymous: logout / cancel represented refresh state
+    Authenticated --> Anonymous: logout / discard represented persisted token
+    Anonymous --> Anonymous: logout
+
+    note right of Refreshing
+      Refreshing is a conceptual state.
+      coordinateRefresh returns only
+      anonymous or authenticated.
+      Fernando's HTTP coordinator owns
+      the real shared Promise and retry.
+    end note
+
+    note right of Authenticated
+      refreshSucceeded.generation identifies
+      the newly active credentials; it need
+      not equal request401.generation.
+    end note
