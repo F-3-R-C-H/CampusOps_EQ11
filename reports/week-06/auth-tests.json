@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "week": 6,
+  "commitSha": "REEMPLAZAR_CON_git_rev-parse_HEAD_DE_40_CARACTERES",
+  "generatedAt": "2026-10-11T00:00:00.000Z",
+  "scope": "Bloque 2 (Tonantzin): modelo de sesión con perfiles CampusOps y matriz de autorización por rol. Dominio puro; no sustituye la verificación del servicio, que responde 403.",
+  "limitations": [
+    "La autorización del cliente es una comprobación de cortesía/UX: el servicio sigue siendo la autoridad y devuelve 403 ante acciones no permitidas.",
+    "Los actores usados son los didácticos del curso (reporter-1/2, technician-1/2, coordinator-1); no se usaron credenciales reales."
+  ],
+  "checks": [
+    {
+      "id": "technician-start-resolve-not-close",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "evidence": "PASS: el técnico puede start y resolve; canPerformAction('technician','close') devuelve false."
+    },
+    {
+      "id": "coordinator-assign-close-reopen",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "evidence": "PASS: el coordinador puede assign, prioritize, close y reopen; no puede start, resolve ni create. Resolución (técnico) y cierre (coordinador) son operaciones distintas."
+    },
+    {
+      "id": "reporter-cannot-assign-403",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "evidence": "PASS: reportante + assign devuelve canPerformAction=false y authorizeAction {allowed:false, status:403, code:'forbidden'}."
+    },
+    {
+      "id": "technician-close-denied-403",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "evidence": "PASS: assertCanActOnIncident lanza AccessDeniedError con status 403 y code 'forbidden' cuando un técnico intenta close."
+    },
+    {
+      "id": "technician-reassigned-incident-denied",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "evidence": "PASS: technician-1 no puede start/resolve una incidencia reasignada a technician-2; technician-2 sí. Una incidencia sin técnico asignado no es visible para ningún técnico."
+    },
+    {
+      "id": "reporter-ownership-boundary",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "evidence": "PASS: reporter-1 comenta su incidencia; reporter-2 no puede comentar la incidencia de reporter-1. Sólo el reportante puede create."
+    },
+    {
+      "id": "deny-by-default-unknown-role-action",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "evidence": "PASS: roles desconocidos, vacíos, null, undefined o con distinta capitalización y acciones desconocidas o vacías devuelven false."
+    },
+    {
+      "id": "access-denied-message-has-no-secrets",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "evidence": "PASS: el mensaje de AccessDeniedError es fijo ('Acceso denegado') y no incluye actor, rol ni tokens."
+    },
+    {
+      "id": "session-lifecycle-and-safe-view",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "evidence": "PASS: createSession rechaza perfil desconocido y credenciales vacías sin exponer tokens; refresh conserva el perfil y sube la generación; endSession deja role y credentials en null; toSafeSessionView no contiene tokens al serializarse."
+    },
+    {
+      "id": "public-week-06-regression",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-06.test.ts",
+      "evidence": "PASS: 1 suite y 2 pruebas; la suite pública de semana 06 sigue aprobada con los archivos de este bloque."
+    },
+    {
+      "id": "typescript-contracts",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run typecheck",
+      "evidence": "PASS: tsc --noEmit terminó con código 0."
+    },
+    {
+      "id": "static-style-check",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm run lint",
+      "evidence": "PASS: eslint . terminó con código 0."
+    }
+  ]
+}
