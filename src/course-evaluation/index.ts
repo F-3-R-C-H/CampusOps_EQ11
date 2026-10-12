@@ -7,6 +7,7 @@ import type {
   SyncRecord,
 } from './contracts';
 import type { IncidentLocation } from '../campusops/contracts';
+import { summarizeSessionEvents } from '../application/session/sessionStateMachine';
 import { parseRemoteResource as parseRemoteResourceContract } from '../domain/remote/RemoteResource';
 
 function pending(name: string): never {
@@ -63,14 +64,14 @@ export function parseRemoteResource(input: unknown): ParseResult {
   return parseRemoteResourceContract(input);
 }
 
-export function coordinateRefresh(_events: readonly AuthEvent[]): Readonly<{
+export function coordinateRefresh(events: readonly AuthEvent[]): Readonly<{
   status: 'anonymous' | 'authenticated';
   activeGeneration: number | null;
   refreshCalls: number;
   retriedRequestIds: readonly string[];
   persistedToken: string | null;
 }> {
-  return pending('coordinateRefresh');
+  return summarizeSessionEvents(events);
 }
 
 export function resolveSync(
