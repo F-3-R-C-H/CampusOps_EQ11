@@ -1,4 +1,5 @@
 import { logWarn } from '../logging/secureLogger';
+import type { SessionCoordinator } from '../security/SessionCoordinator';
 
 export type HttpTransportError =
   | Readonly<{ kind: 'timeout' }>
@@ -28,6 +29,8 @@ export type CourseHttpClientOptions = Readonly<{
   timeoutMs?: number;
   fetchImpl?: FetchLike;
   logger?: TechnicalLogger;
+  sessionCoordinator?: SessionCoordinator;
+  maxRetries?: number;
 }>;
 
 type FetchOutcome =
@@ -48,6 +51,8 @@ export class CourseHttpClient {
   private readonly timeoutMs: number;
   private readonly fetchImpl: FetchLike;
   private readonly logger: TechnicalLogger;
+  private readonly sessionCoordinator: SessionCoordinator | undefined;
+  private readonly maxRetries: number;
 
   constructor(options: CourseHttpClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/$/, '');
@@ -56,16 +61,30 @@ export class CourseHttpClient {
     this.timeoutMs = options.timeoutMs ?? 3000;
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.logger = options.logger ?? logWarn;
+    this.sessionCoordinator = options.sessionCoordinator;
+    this.maxRetries = options.maxRetries ?? 1;
   }
 
-  async requestJson(request: HttpRequest): Promise<HttpResult> {
+  async requestJson(
+    request: HttpRequest,
+    attempt = 0,
+    requestGeneration?: number,
+  ): Promise<HttpResult> {
     const controller = new AbortController();
     const timeoutMs = request.timeoutMs ?? this.timeoutMs;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
+    let authHeader = 'Bearer course-valid-token';
+    const activeGeneration =
+      requestGeneration ?? this.sessionCoordinator?.getActiveGeneration() ?? 0;
+
+    if (this.sessionCoordinator) {
+      authHeader = await this.sessionCoordinator.getAuthorizationHeader();
+    }
+
     const headers: Record<string, string> = {
       Accept: 'application/json',
-      Authorization: 'Bearer course-valid-token',
+      Authorization: authHeader,
       'X-Course-Actor': this.actorId,
       ...(this.scenario ? { 'X-Course-Scenario': this.scenario } : {}),
       ...(request.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
@@ -73,19 +92,24 @@ export class CourseHttpClient {
     };
 
     const fetchOutcome: Promise<FetchOutcome> = Promise.resolve()
-      .then(() => this.fetchImpl(`${this.baseUrl}${request.path}`, {
-        method: request.method,
-        headers,
-        signal: controller.signal,
-        ...(request.body !== undefined ? { body: JSON.stringify(request.body) } : {}),
-      }))
-      .then(async (response): Promise<FetchOutcome> => {
-        try {
-          return { kind: 'response', response, text: await response.text() };
-        } catch {
-          return { kind: 'network' };
-        }
-      }, (): FetchOutcome => ({ kind: 'network' }));
+      .then(() =>
+        this.fetchImpl(`${this.baseUrl}${request.path}`, {
+          method: request.method,
+          headers,
+          signal: controller.signal,
+          ...(request.body !== undefined ? { body: JSON.stringify(request.body) } : {}),
+        }),
+      )
+      .then(
+        async (response): Promise<FetchOutcome> => {
+          try {
+            return { kind: 'response', response, text: await response.text() };
+          } catch {
+            return { kind: 'network' };
+          }
+        },
+        (): FetchOutcome => ({ kind: 'network' }),
+      );
 
     const timeoutOutcome = new Promise<FetchOutcome>((resolve) => {
       timer = setTimeout(() => {
@@ -114,6 +138,29 @@ export class CourseHttpClient {
 
       if (!response.ok) {
         const code = validJson ? parseTechnicalCode(data) : undefined;
+
+        // Si recibimos 401 y hay SessionCoordinator configurado, coordinar renovación
+        if (response.status === 401 && this.sessionCoordinator) {
+          if (attempt >= this.maxRetries) {
+            this.logger('course_http_retry_aborted', {
+              method: request.method,
+              path: request.path,
+              reason: 'max_retries_exceeded',
+              attempt,
+            });
+            return this.fail(request, {
+              kind: 'http',
+              status: response.status,
+              ...(code ? { code } : {}),
+            });
+          }
+
+          const refreshOutcome = await this.sessionCoordinator.coordinateRefresh(activeGeneration);
+          if (refreshOutcome.ok) {
+            return this.requestJson(request, attempt + 1, refreshOutcome.activeGeneration);
+          }
+        }
+
         return this.fail(request, {
           kind: 'http',
           status: response.status,
@@ -139,3 +186,4 @@ export class CourseHttpClient {
     return { ok: false, error };
   }
 }
+
