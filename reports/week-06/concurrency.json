@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "week": 6,
+  "commitSha": "e68292ee96f2584f15531ddd1cf87cc70b8d69c6",
+  "generatedAt": "2026-10-12T22:15:00.000Z",
+  "scope": "Bloque 3 (Fernando): cliente HTTP con coordinador de sesión concurrente, Single-Flight Mutex, prevención de bucles infinitos de renovación y limpieza segura de credenciales en almacenamiento seguro.",
+  "limitations": [
+    "Las pruebas de concurrencia ejecutan N operaciones simultáneas en memoria con latencia artificial para asegurar el traslape en vuelo sin depender de fluctuaciones de red externa.",
+    "El límite de reintentos por petición está fijado a 1 para evitar bucles de renovación ante rechazos persistentes del backend."
+  ],
+  "checks": [
+    {
+      "id": "single-flight-coalescing-3-requests",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/__tests__/sessionConcurrency.test.ts",
+      "evidence": "PASS: 3 peticiones concurrentes simultáneas con 401 son agrupadas en una única llamada a /v1/session/refresh (refreshCalls=1), reintentan con el nuevo token y obtienen status 200."
+    },
+    {
+      "id": "bounded-retries-loop-prevention",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/sessionConcurrency.test.ts",
+      "evidence": "PASS: cuando un token renovado vuelve a ser rechazado con 401, el cliente cancela reintentos con course_http_retry_aborted y reason='max_retries_exceeded', evitando bucles infinitos."
+    },
+    {
+      "id": "refresh-failure-clears-secure-storage",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/sessionConcurrency.test.ts",
+      "evidence": "PASS: ante fallo definitivo del refresh (401/invalid_grant o credencial revocada), SessionCoordinator ejecuta clearSecureSession(), borra los tokens persistidos y aborta las peticiones encoladas."
+    },
+    {
+      "id": "older-generation-immediate-retry",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/sessionConcurrency.test.ts",
+      "evidence": "PASS: una petición con generación obsoleta (0) que llega después de un refresh exitoso a generación 1 se reintenta inmediatamente (coalesced=true) sin disparar otra llamada a refresh."
+    },
+    {
+      "id": "explicit-logout-clears-session",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/__tests__/sessionConcurrency.test.ts",
+      "evidence": "PASS: logout() limpia sesión en SecureStore, restablece activeGeneration a 0 y emite session_logout_completed."
+    },
+    {
+      "id": "sanitized-telemetry-no-token-leak",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/sessionConcurrency.test.ts",
+      "evidence": "PASS: ninguna traza ni log de CourseHttpClient o SessionCoordinator contiene tokens de acceso, tokens de refresco, contraseñas ni cabeceras sensibles."
+    }
+  ]
+}

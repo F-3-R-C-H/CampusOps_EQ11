@@ -24,7 +24,7 @@ function buildEntry(level: LogLevel, message: string, context?: unknown): LogEnt
   return {
     timestamp: new Date().toISOString(),
     level,
-    message,
+    message: sanitizeErrorMessage(message),
     // El contexto siempre pasa por el sanitizador antes de almacenarse o emitirse.
     ...(context !== undefined ? { context: redactForTelemetry(context) } : {}),
   };
@@ -58,15 +58,25 @@ export function logWarn(message: string, context?: unknown): void {
   emit(buildEntry('warn', message, context));
 }
 
+function sanitizeErrorMessage(msg: string): string {
+  return msg
+    .replace(/(bearer\s+)[^\s]+/gi, '$1[REDACTED]')
+    .replace(/((?:token|password|secret|apikey|authorization|accesstoken|refreshtoken)\s*[:=]\s*)[^\s,]+/gi, '$1[REDACTED]')
+    .replace(/ey[a-zA-Z0-9_\-]{10,}\.[a-zA-Z0-9_\-]{10,}\.[a-zA-Z0-9_\-]*/g, '[REDACTED_JWT]')
+    .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, '[REDACTED_EMAIL]');
+}
+
 /**
  * Registra un error técnico. Si se pasa un objeto Error, se extrae solo
- * el tipo y el mensaje normalizado — nunca el stack completo, que puede
+ * el tipo y el mensaje sanitizado — nunca el stack completo, que puede
  * incluir valores de variables sensibles interpolados por el runtime.
  */
 export function logError(message: string, error?: unknown, context?: unknown): void {
   const safeError =
     error instanceof Error
-      ? { errorName: error.name, errorMessage: error.message }
+      ? { errorName: error.name, errorMessage: sanitizeErrorMessage(error.message) }
+      : typeof error === 'string'
+      ? { errorMessage: sanitizeErrorMessage(error) }
       : undefined;
 
   const merged =
@@ -76,3 +86,4 @@ export function logError(message: string, error?: unknown, context?: unknown): v
 
   emit(buildEntry('error', message, merged));
 }
+

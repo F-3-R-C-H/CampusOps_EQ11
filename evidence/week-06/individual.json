@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "week": 6,
+  "teamId": "EQ11",
+  "members": [
+    {
+      "studentId": "3523110097",
+      "commitShas": [
+        "6434e3049165617725cb73573289a3c03588e7cf"
+      ],
+      "files": [
+        "src/course-evaluation/index.ts",
+        "src/application/session/sessionStateMachine.ts",
+        "src/__tests__/coordinateRefresh.test.ts",
+        "docs/session-state-machine.mmd"
+      ],
+      "tests": [
+        "course-tests/public/week-06.test.ts",
+        "src/__tests__/coordinateRefresh.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Se espera que coordinateRefresh reduzca los eventos request401 concurrentes agrupándolos en una única llamada de refresh (refreshCalls: 1), avance la generación tras refreshSucceeded y limpie el token persistido ante logout.",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-06.test.ts src/__tests__/coordinateRefresh.test.ts",
+      "observedResult": "PASS: 2 suites, 8 pruebas aprobadas, 0 snapshots. coordinateRefresh cumple con la prueba pública y gestiona correctamente eventos de sesión y logout.",
+      "explanation": "Implementé la máquina de estados de sesión y el adaptador coordinateRefresh en src/course-evaluation/index.ts con su lógica en sessionStateMachine.ts. El adaptador reduce eventos observables de autenticación agrupando múltiples 401s de una misma generación en una sola llamada de refresh, reintentando las solicitudes tras éxito y limpiando el estado persistido ante logout o fallo. También elaboré el diagrama Mermaid docs/session-state-machine.mmd que documenta el ciclo de vida completo de la sesión."
+    },
+    {
+      "studentId": "3523110683",
+      "commitShas": [
+        "625e5bc0253e46c1be122b6ea5c33eae4b734cb1",
+        "e68292ee96f2584f15531ddd1cf87cc70b8d69c6"
+      ],
+      "files": [
+        "src/infrastructure/security/SessionCoordinator.ts",
+        "src/infrastructure/http/CourseHttpClient.ts",
+        "src/infrastructure/logging/secureLogger.ts",
+        "src/__tests__/sessionConcurrency.test.ts",
+        "src/__tests__/sanitizer.test.ts",
+        "reports/week-06/concurrency.json",
+        "evidence/week-06/engineering.json"
+      ],
+      "tests": [
+        "src/__tests__/sessionConcurrency.test.ts",
+        "src/__tests__/sanitizer.test.ts",
+        "src/__tests__/courseHttpClient.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Se espera que SessionCoordinator aplique Single-Flight mutex ante 3 peticiones concurrentes con 401 ejecutando exactamente 1 llamada de refresh, reintente con éxito, aborte reintentos si el 401 persiste (límite 1 reintento para evitar bucles), sanitice error.message en secureLogger y limpie SecureStore si el refresh falla.",
+      "command": "npm test -- --ci --runInBand src/__tests__/sessionConcurrency.test.ts src/__tests__/sanitizer.test.ts",
+      "observedResult": "PASS: 2 suites, 38 pruebas aprobadas, 0 snapshots. Se comprobó coalescing de 3 peticiones a 1 refresh, cancelación por reintentos máximos, limpieza de SecureStore y sanitización estricta de error.message con tokens y passwords.",
+      "explanation": "Implementé el SessionCoordinator en src/infrastructure/security/SessionCoordinator.ts y lo integré en CourseHttpClient.ts. Administra la renovación mediante una promesa compartida (Single-Flight) para coalescer peticiones concurrentes ante 401, enlaza el token activo desde SecureStore, limita los reintentos a 1 para prevenir bucles infinitos y ejecuta clearSecureSession() ante fallo de renovación. Sanitizé el logger en secureLogger.ts para evitar exposición de error.message y context con tokens o passwords. Diseñé las pruebas en sessionConcurrency.test.ts y sanitizer.test.ts, generé reports/week-06/concurrency.json y redacté la decisión técnica en evidence/week-06/engineering.json."
+    },
+    {
+      "studentId": "3523110858",
+      "commitShas": [
+        "cab713ea71cf5e3a824d7f05772eb81da4c0313c"
+      ],
+      "files": [
+        "src/domain/models/Session.ts",
+        "src/domain/security/CampusOpsAuthorization.ts",
+        "src/__tests__/campusOpsAuthorization.test.ts",
+        "reports/week-06/auth-tests.json"
+      ],
+      "tests": [
+        "src/__tests__/campusOpsAuthorization.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Se espera que la matriz de autorización valide las acciones por rol (reporter, technician, coordinator) y deniegue con status 403 (forbidden) cualquier intento de acción no autorizada o sobre incidencias ajenas.",
+      "command": "npm test -- --ci --runInBand src/__tests__/campusOpsAuthorization.test.ts",
+      "observedResult": "PASS: 1 suite, 34 pruebas aprobadas, 0 snapshots. Se verificaron todas las combinaciones de roles, acciones, visibilidad de incidencias y excepciones 403.",
+      "explanation": "Implementé el modelo puro de sesión en src/domain/models/Session.ts y la matriz de autorización por perfiles en src/domain/security/CampusOpsAuthorization.ts según la especificación de CampusOps. Definí los permisos estrictos para reportante, técnico y coordinador, verificando propiedad y asignación de incidencias. Añadí 34 pruebas unitarias que cubren casos nominales, de frontera y de rechazo 403, y generé el reporte de verificación reports/week-06/auth-tests.json."
+    }
+  ]
+}

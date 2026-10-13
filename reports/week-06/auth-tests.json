@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "week": 6,
-  "commitSha": "REEMPLAZAR_CON_git_rev-parse_HEAD_DE_40_CARACTERES",
-  "generatedAt": "2026-10-11T00:00:00.000Z",
+  "commitSha": "e68292ee96f2584f15531ddd1cf87cc70b8d69c6",
+  "generatedAt": "2026-10-12T22:15:00.000Z",
   "scope": "Bloque 2 (Tonantzin): modelo de sesión con perfiles CampusOps y matriz de autorización por rol. Dominio puro; no sustituye la verificación del servicio, que responde 403.",
   "limitations": [
     "La autorización del cliente es una comprobación de cortesía/UX: el servicio sigue siendo la autoridad y devuelve 403 ante acciones no permitidas.",

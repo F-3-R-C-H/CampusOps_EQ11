@@ -4,6 +4,7 @@ import {
   normalizeKey,
   sanitize,
 } from '../infrastructure/security/sanitizer';
+import { logError } from '../infrastructure/logging/secureLogger';
 
 describe('sanitizer — normalización de claves', () => {
   test('normaliza a minúsculas y sin _ ni -', () => {
@@ -101,5 +102,32 @@ describe('sanitizer — fronteras y fallas', () => {
     const a: Record<string, unknown> = { status: 'ok' };
     a.self = a;
     expect(sanitize(a)).toEqual({ status: 'ok', self: '[Circular]' });
+  });
+});
+
+describe('secureLogger — sanitización de errores y error.message', () => {
+  let errorSpy: jest.SpyInstance;
+  const originalDev = (globalThis as unknown as { __DEV__: boolean }).__DEV__;
+
+  beforeEach(() => {
+    (globalThis as unknown as { __DEV__: boolean }).__DEV__ = true;
+    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    errorSpy.mockRestore();
+    (globalThis as unknown as { __DEV__: boolean }).__DEV__ = originalDev;
+  });
+
+  test('logError sanitiza error.message con tokens, passwords, bearer y correos', () => {
+    const error = new Error('Falló petición con Bearer my-secret-jwt-token-12345 y password=supersecret');
+    logError('Error en llamada HTTP', error, { userEmail: 'test@campusops.test' });
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    const logged = errorSpy.mock.calls[0][0] as string;
+    expect(logged).not.toContain('my-secret-jwt-token-12345');
+    expect(logged).not.toContain('supersecret');
+    expect(logged).toContain('[REDACTED]');
+    expect(logged).toContain('"errorMessage":"Falló petición con Bearer [REDACTED] y password=[REDACTED]"');
   });
 });
