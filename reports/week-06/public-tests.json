@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "week": 6,
   "mode": "public",
-  "commitSha": "c2eaabcab76936ad29138b942038992829b6134a",
-  "evaluatedAt": "2026-10-13T04:30:19.050478+00:00",
-  "status": "pass",
+  "commitSha": "2001d744dcb58e6ab78d854c7526e6f71de771ad",
+  "evaluatedAt": "2026-10-13T04:45:07.307122+00:00",
+  "status": "fail",
   "checks": [
     {
       "id": "base_files",
@@ -38,18 +38,18 @@
     },
     {
       "id": "schema:reports/week-06/auth-tests.json",
-      "status": "pass",
-      "detail": "12 checks indexed, 7 boundary/failure; evidence-only commit; invalid changes=[]"
+      "status": "fail",
+      "detail": "commitSha must be HEAD or its direct evidence-only parent"
     },
     {
       "id": "schema:reports/week-06/concurrency.json",
-      "status": "pass",
-      "detail": "6 checks indexed, 4 boundary/failure; evidence-only commit; invalid changes=[]"
+      "status": "fail",
+      "detail": "commitSha must be HEAD or its direct evidence-only parent"
     },
     {
       "id": "schema:evidence/week-06/engineering.json",
-      "status": "pass",
-      "detail": "decision evidence is substantive and reproducible; evidence-only commit; invalid changes=[]"
+      "status": "fail",
+      "detail": "commitSha must be HEAD or its direct evidence-only parent"
     },
     {
       "id": "schema:evidence/week-06/individual.json",

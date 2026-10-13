@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 6,
-  "commitSha": "e68292ee96f2584f15531ddd1cf87cc70b8d69c6",
+  "commitSha": "2001d744dcb58e6ab78d854c7526e6f71de771ad",
   "generatedAt": "2026-10-12T22:15:00.000Z",
   "scope": "Bloque 2 (Tonantzin): modelo de sesión con perfiles CampusOps y matriz de autorización por rol. Dominio puro; no sustituye la verificación del servicio, que responde 403.",
   "limitations": [

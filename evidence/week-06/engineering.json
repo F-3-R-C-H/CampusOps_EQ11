@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 6,
-  "commitSha": "e68292ee96f2584f15531ddd1cf87cc70b8d69c6",
+  "commitSha": "2001d744dcb58e6ab78d854c7526e6f71de771ad",
   "decision": "Se implementó una política de renovación de sesión concurrente basada en Single-Flight Mutex (promesa compartida) y control de generaciones en SessionCoordinator integrado en CourseHttpClient, con límite de 1 reintento para prevenir bucles infinitos y transición segura a estado anónimo con limpieza de SecureStore (clearSecureSession) ante rechazo definitivo del token.",
   "alternatives": [
     "Renovación ingenua sin coordinación (N operaciones que reciben 401 disparan N llamadas independientes a /v1/session/refresh): produce condiciones de carrera, N logouts duplicados y riesgo de invalidación de tokens previos en el servidor.",
