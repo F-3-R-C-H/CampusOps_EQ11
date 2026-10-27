@@ -14,3 +14,5 @@ dist/
 *.p12
 reports/**/generated-*
 _week04_ref/
+__pycache__/
+*.pyc
