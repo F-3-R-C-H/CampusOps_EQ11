@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "week": 8,
+  "teamId": "EQ11",
+  "commitSha": "pending",
+  "generatedAt": "2026-10-26T00:00:00.000Z",
+  "checks": [
+    {
+      "id": "MT-01",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/__tests__/migrationManager.test.ts",
+      "evidence": "Migración v1→v2 exitosa: 3 incidencias conservadas, incidencia sin categoría recibió category='maintenance', incidencia con category='security' conservada, cola intacta, schema_version actualizado a 2"
+    },
+    {
+      "id": "MT-02",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/migrationManager.test.ts",
+      "evidence": "Falla inyectada con injectFail=true: migrate retorna 'rolled_back', schema_version restaurado a 1, incidents y offline_queue idénticos al snapshot previo. Sin estado v2 parcial mezclado con v1"
+    },
+    {
+      "id": "MT-03",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/offlineQueue.test.ts",
+      "evidence": "Pendiente de resultados de Tonantzin (cola persistente con AsyncStorage)"
+    },
+    {
+      "id": "MT-04",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-08.test.ts",
+      "evidence": "Pendiente de verificación - resolveSync detecta conflicto en campo work (campus-inc-001)"
+    },
+    {
+      "id": "MT-05",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-08.test.ts",
+      "evidence": "Pendiente de verificación - deduplicateOperations conserva primera op-1, descarta duplicado"
+    }
+  ]
+}
