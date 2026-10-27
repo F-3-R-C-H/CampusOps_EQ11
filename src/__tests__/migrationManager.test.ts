@@ -46,12 +46,14 @@ describe('MigrationManager v1 -> v2', () => {
     // Verifica que se guardó schema_version a 2
     const versionCalls = mockAsyncStorage.setItem.mock.calls.filter((c) => c[0] === 'campusops:schema_version');
     expect(versionCalls.length).toBeGreaterThan(0);
-    expect(versionCalls[versionCalls.length - 1][1]).toBe('2');
+    const lastVersionCall = versionCalls[versionCalls.length - 1];
+    expect(lastVersionCall?.[1]).toBe('2');
 
     // Verifica que incidencias migradas incluyen category cuando falta
     const incidentsCalls = mockAsyncStorage.setItem.mock.calls.filter((c) => c[0] === 'campusops:incidents');
     expect(incidentsCalls.length).toBeGreaterThan(0);
-    const savedIncidents = JSON.parse(incidentsCalls[incidentsCalls.length - 1][1]);
+    const lastIncidentsCall = incidentsCalls[incidentsCalls.length - 1];
+    const savedIncidents = JSON.parse(lastIncidentsCall?.[1] ?? '[]');
     expect(savedIncidents[0].category).toBe('maintenance');
     expect(savedIncidents[1].category).toBe('maintenance');
     expect(savedIncidents[2].category).toBe('security'); // ya tenía categoría, se conserva
@@ -90,17 +92,20 @@ describe('MigrationManager v1 -> v2', () => {
     // Debe restaurar incidents exactamente como estaba
     const incidentsSetCalls = mockAsyncStorage.setItem.mock.calls.filter((c) => c[0] === 'campusops:incidents');
     expect(incidentsSetCalls.length).toBeGreaterThan(0);
-    expect(incidentsSetCalls[incidentsSetCalls.length - 1][1]).toBe(JSON.stringify(incidents));
+    const lastIncidentsSetCall = incidentsSetCalls[incidentsSetCalls.length - 1];
+    expect(lastIncidentsSetCall?.[1]).toBe(JSON.stringify(incidents));
 
     // Debe restaurar queue exactamente como estaba
     const queueSetCalls = mockAsyncStorage.setItem.mock.calls.filter((c) => c[0] === 'campusops:offline_queue');
     expect(queueSetCalls.length).toBeGreaterThan(0);
-    expect(queueSetCalls[queueSetCalls.length - 1][1]).toBe(JSON.stringify(queue));
+    const lastQueueSetCall = queueSetCalls[queueSetCalls.length - 1];
+    expect(lastQueueSetCall?.[1]).toBe(JSON.stringify(queue));
 
     // Debe restaurar schema_version a 1
     const versionSetCalls = mockAsyncStorage.setItem.mock.calls.filter((c) => c[0] === 'campusops:schema_version');
     expect(versionSetCalls.length).toBeGreaterThan(0);
-    expect(versionSetCalls[versionSetCalls.length - 1][1]).toBe('1');
+    const lastVersionSetCall = versionSetCalls[versionSetCalls.length - 1];
+    expect(lastVersionSetCall?.[1]).toBe('1');
   });
 
   test('boundary: getCurrentSchemaVersion retorna 0 si no existe y SCHEMA_VERSION es 2', async () => {

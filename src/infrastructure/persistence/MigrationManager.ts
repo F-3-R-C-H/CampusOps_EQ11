@@ -34,7 +34,7 @@ export async function migrate(
   try {
     // Paso de migración ejemplo v1 -> v2: añadir campo 'category' si no existe
     const incidentsRaw = snapshot.incidents ?? '[]';
-    const incidents = JSON.parse(incidentsRaw) as Array<Record<string, unknown>>;
+    const incidents = JSON.parse(incidentsRaw) as Record<string, unknown>[];
 
     const migrated = incidents.map((inc) => {
       if (Object.prototype.hasOwnProperty.call(inc, 'category') && inc.category !== undefined) {
