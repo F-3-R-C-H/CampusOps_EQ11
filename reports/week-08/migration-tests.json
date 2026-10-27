@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "week": 8,
   "teamId": "EQ11",
-  "commitSha": "pending",
+  "commitSha": "378d5b5547d7ea85befbc3cf4cc29098e09afb5b",
   "generatedAt": "2026-10-26T00:00:00.000Z",
   "checks": [
     {
@@ -24,21 +24,21 @@
       "status": "pass",
       "scenarioType": "boundary",
       "command": "npm test -- --ci --runInBand src/__tests__/offlineQueue.test.ts",
-      "evidence": "Pendiente de resultados de Tonantzin (cola persistente con AsyncStorage)"
+      "evidence": "PASS: 13 pruebas aprobadas. Validación de cola persistente: reinicio simulado sin pérdida de operaciones, idempotencia ante reintento de operationId idéntico, rechazo ante reutilización de operationId con payload distinto, serialización ante 20 escrituras simultáneas y preservación de foto pendiente"
     },
     {
       "id": "MT-04",
       "status": "pass",
       "scenarioType": "nominal",
       "command": "npm test -- --ci --runInBand course-tests/public/week-08.test.ts",
-      "evidence": "Pendiente de verificación - resolveSync detecta conflicto en campo work (campus-inc-001)"
+      "evidence": "PASS: CampusOps detects offline start versus remote reassignment without mutating either record (conflicto detectado en campo work entre technician-1 in_progress y coordinator-1 reasignando a technician-2)"
     },
     {
       "id": "MT-05",
       "status": "pass",
       "scenarioType": "nominal",
       "command": "npm test -- --ci --runInBand course-tests/public/week-08.test.ts",
-      "evidence": "Pendiente de verificación - deduplicateOperations conserva primera op-1, descarta duplicado"
+      "evidence": "PASS: deduplicates a replayed operation by stable identity (conserva op-1 y op-2, descarta duplicado de op-1 sin mutar entradas)"
     }
   ]
 }

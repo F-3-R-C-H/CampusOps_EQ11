@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "week": 8,
+  "teamId": "EQ11",
+  "members": [
+    {
+      "studentId": "3523110683",
+      "commitShas": [
+        "2f7b108e644ab94abcb95e0f219ff09c8622f4ef",
+        "3e173e1ce7729f2392a458b8de46a09015504ebe"
+      ],
+      "files": [
+        "src/course-evaluation/index.ts",
+        "src/__tests__/resolveSync.test.ts",
+        "src/__tests__/deduplicateOps.test.ts",
+        "evidence/week-08/engineering.json"
+      ],
+      "tests": [
+        "course-tests/public/week-08.test.ts",
+        "src/__tests__/resolveSync.test.ts",
+        "src/__tests__/deduplicateOps.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Se espera que resolveSync combine cambios en campos independientes (title, priority) y reporte conflicto ordenado alfabéticamente en campos coincidentes modificados por ambos actores (work: { assignedTechnicianId, status }). deduplicateOperations debe conservar la primera aparición de cada operationId sin mutar la entrada.",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-08.test.ts src/__tests__/resolveSync.test.ts src/__tests__/deduplicateOps.test.ts",
+      "observedResult": "PASS: 3 suites, 17 pruebas aprobadas. resolveSync detecta conflicto en campo work sin mutar objetos base/local/remote; deduplicateOperations elimina duplicados preservando primera referencia. Cumple con pruebas públicas de semana 8.",
+      "explanation": "Implementé resolveSync en src/course-evaluation/index.ts con algoritmo 3-way merge basado en comparación por contenido JSON canónico y ordenamiento alfabético de colisiones para detectar inicio offline vs reasignación de coordinación en CampusOps. Implementé deduplicateOperations con Set para garantizar idempotencia pura sin mutar arreglos. Diseñé pruebas unitarias exhaustivas en src/__tests__/resolveSync.test.ts y src/__tests__/deduplicateOps.test.ts, y redacté la evidencia de decisión técnica en evidence/week-08/engineering.json descartando LWW y timestamps móviles."
+    },
+    {
+      "studentId": "3523110858",
+      "commitShas": [
+        "6c5f7e35b9331bd2ab557649719da3ed9ad53a2b",
+        "9748226389905c21cf197c310b858ff8f66baf0b"
+      ],
+      "files": [
+        "src/infrastructure/persistence/OfflineQueue.ts",
+        "src/__tests__/offlineQueue.test.ts",
+        "docs/sync-policy.md",
+        "package.json",
+        "package-lock.json"
+      ],
+      "tests": [
+        "src/__tests__/offlineQueue.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "La cola persistirá en AsyncStorage las operaciones de technician-1 sobre campus-inc-001 (start, comment, add_evidence) y, tras un reinicio simulado de la app, getAll devolverá las mismas operaciones con el mismo operationId y contenido. Un enqueue repetido con el mismo operationId y contenido no agregará una segunda entrada; con contenido distinto será rechazado. Una operación en conflicto o sin confirmación del servidor seguirá en la cola.",
+      "command": "npm test -- --ci --runInBand src/__tests__/offlineQueue.test.ts",
+      "observedResult": "PASS: 1 suite, 13 pruebas aprobadas. Cubre enqueue/getAll, orden FIFO, duplicado idéntico, reutilización de operationId con contenido distinto (operation_id_reused), reinicio simulado, foto pendiente que permanece hasta remove, conflicto marcado y excluido del envío, 20 enqueue simultáneos sin pérdida y cola corrupta sin sobrescribir. Junto con week-06, week-08, resolveSync y deduplicateOps: 5 suites, 33 pruebas aprobadas; tsc y eslint sin errores.",
+      "explanation": "Implementé OfflineQueue en src/infrastructure/persistence/OfflineQueue.ts, una cola de operaciones pendientes guardada en AsyncStorage bajo campusops:offline_queue, de modo que sobrevive al cierre de la app. Cada operación conserva operationId estable, incidencia, autor, versión base, acción, payload y createdAt. enqueue evita duplicados: si llega el mismo operationId con el mismo contenido lo trata como reintento, y si llega con contenido distinto lanza error, igual que el servidor respondería 409. remove sólo debe llamarse cuando el servidor confirma, y markConflict conserva la intención local sin borrarla y la excluye del envío hasta que se resuelva. Para evitar que dos escrituras simultáneas se pisen serialicé el acceso, y si el JSON guardado está corrupto lanzo un error en vez de sobrescribirlo. También redacté docs/sync-policy.md con las reglas de combinación y conflicto, la autorización heredada de la semana 6, la identidad estable de operación y el momento de retirar una operación de la cola, vinculando cada regla con su prueba. Agregué la dependencia @react-native-async-storage/async-storage 2.2.0."
+    },
+    {
+      "studentId": "3523110097",
+      "commitShas": [
+        "a0628730e255b11cfd159cca75c9b86c1a411dfa",
+        "a861fab8ad4663e08188d36d938e0f3948d4f658"
+      ],
+      "files": [
+        "docs/data-model.md",
+        "src/infrastructure/persistence/MigrationManager.ts",
+        "src/__tests__/migrationManager.test.ts",
+        "reports/week-08/migration-tests.json",
+        "evidence/week-08/individual.json"
+      ],
+      "tests": [
+        "src/__tests__/migrationManager.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "La migración v1→v2 conservará los datos existentes. Con falla inyectada, el rollback restaurará exactamente el estado anterior sin mezcla de esquemas.",
+      "command": "npm test -- --ci --runInBand src/__tests__/migrationManager.test.ts",
+      "observedResult": "PASS src/__tests__/migrationManager.test.ts (3 passed, 3 total) - nominal migrate(1,2) ok, rollback con injectFail restaurando snapshot completo, getCurrentSchemaVersion()=0 si no existe, SCHEMA_VERSION=2",
+      "explanation": "Implementé MigrationManager con snapshot completo (incidents, queue, schema_version) antes de migrar. En caso de error (injectFail) se restaura todo tal como estaba y si schema_version era null se elimina con removeItem. Añadí migración v1→v2 que asigna category='maintenance' a incidencias sin ella sin afectar las que ya la tienen. Los tests validan migración exitosa, rollback controlado y caso boundary."
+    }
+  ]
+}

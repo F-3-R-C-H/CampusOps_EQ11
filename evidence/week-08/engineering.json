@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 8,
-  "commitSha": "2f7b108e644ab94abcb95e0f219ff09c8622f4ef",
+  "commitSha": "378d5b5547d7ea85befbc3cf4cc29098e09afb5b",
   "decision": "Se implementó una política de sincronización determinista de tres vías (resolveSync) campo por campo basada en igualdad de contenido JSON canónico y ordenamiento alfabético de campos en conflicto. Un conflicto se detecta únicamente cuando tanto la réplica local como la remota divergen de la versión base y difieren entre sí. El campo 'work' de CampusOps encapsula assignedTechnicianId y status, permitiendo detectar colisiones semánticas cuando un técnico inicia labores offline y coordinación reasigna concurrentemente sin perder datos ni forzar Last-Write-Wins. Adicionalmente, deduplicateOperations garantiza idempotencia pura conservando la primera aparición de cada operationId sin mutar las entradas.",
   "alternatives": [
     "Last-Write-Wins (LWW): Descartado porque sobrescribe ciegamente la intención del técnico offline o la reasignación de coordinación, causando pérdida silenciosa de trabajo o inconsistencias de estado.",
