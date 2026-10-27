@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "week": 8,
+  "commitSha": "2f7b108e644ab94abcb95e0f219ff09c8622f4ef",
+  "decision": "Se implementó una política de sincronización determinista de tres vías (resolveSync) campo por campo basada en igualdad de contenido JSON canónico y ordenamiento alfabético de campos en conflicto. Un conflicto se detecta únicamente cuando tanto la réplica local como la remota divergen de la versión base y difieren entre sí. El campo 'work' de CampusOps encapsula assignedTechnicianId y status, permitiendo detectar colisiones semánticas cuando un técnico inicia labores offline y coordinación reasigna concurrentemente sin perder datos ni forzar Last-Write-Wins. Adicionalmente, deduplicateOperations garantiza idempotencia pura conservando la primera aparición de cada operationId sin mutar las entradas.",
+  "alternatives": [
+    "Last-Write-Wins (LWW): Descartado porque sobrescribe ciegamente la intención del técnico offline o la reasignación de coordinación, causando pérdida silenciosa de trabajo o inconsistencias de estado.",
+    "Merge basado en timestamp de cliente: Descartado debido a que los relojes locales de dispositivos móviles sin conexión no son confiables ni monótonos, lo que provocaría resolución arbitraria e incorrecta de conflictos.",
+    "Sobrescribir registro completo ante conflicto: Descartado porque anula cambios legítimos e independientes realizados en otros campos como título, notas o prioridades que no entraban en colisión."
+  ],
+  "tradeoff": "Beneficio: Garantiza detección precisa de colisiones a nivel de campo sin pérdida silenciosa de intenciones de los actores (técnico y coordinación), manteniendo inmutabilidad e idempotencia en reintentos. Costo: Los campos en conflicto no se pueden resolver automáticamente y deben aislarse en la cola offline para requerir intervención o revisión explícita del usuario.",
+  "requirementIds": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05"
+  ],
+  "verification": [
+    {
+      "command": "npm test -- --ci --runInBand course-tests/public/week-08.test.ts",
+      "result": "PASS course-tests/public/week-08.test.ts (3 passed, 3 total)",
+      "evidence": "Detecta colisión en campo work entre inicio offline (in_progress) y reasignación remota (technician-2) sin mutar entradas; combina campos independientes; deduplica operación repetida por operationId estable."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/__tests__/resolveSync.test.ts",
+      "result": "PASS src/__tests__/resolveSync.test.ts (9 passed, 9 total)",
+      "evidence": "Valida resolución 3-way: sin cambios, cambios locales independientes, cambios remotos, colisiones múltiples con orden alfabético, comparación por contenido JSON profundo e inmutabilidad estricta."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/__tests__/deduplicateOps.test.ts",
+      "result": "PASS src/__tests__/deduplicateOps.test.ts (5 passed, 5 total)",
+      "evidence": "Deduplicación idempotente: lista vacía, lista sin repetidos, 3 repetidos conservando primera ocurrencia, preservación de orden e inmutabilidad del arreglo de entrada."
+    },
+    {
+      "command": "npm test -- --ci --runInBand course-tests/public/week-06.test.ts",
+      "result": "PASS course-tests/public/week-06.test.ts (2 passed, 2 total)",
+      "evidence": "Garantiza no regresión: coordinador de sesión unifica llamadas concurrentes 401 y logout elimina credenciales persistidas."
+    }
+  ]
+}
