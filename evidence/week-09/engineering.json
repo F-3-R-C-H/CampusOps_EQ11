@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "commitSha": "a429bd2958b98f5fd2c1447686dcfec23cdf40db",
+  "decision": "Se implementó una política de resiliencia de dos niveles para las integraciones de CampusOps con servicios externos. Nivel 1 — Selección de ubicación: selectIncidentLocation valida estrictamente que el resultado del proveedor sea un objeto con label textual no vacío y coordenadas numéricas finitas dentro de latitud [-90, 90] y longitud [-180, 180]; ante cualquier otra condición (null, error representado como dato, objeto incompleto, coordenadas inválidas o tipos incorrectos) devuelve la etiqueta manual sin inventar coordenadas. Nivel 2 — Planificación de reintentos: planRetry aplica un árbol de decisión con cuatro reglas en orden de prioridad: (1) cese absoluto en attempt >= 4, (2) bloqueo de POST sin identidad estable de operación, (3) respeto estricto a Retry-After para respuestas 429, y (4) backoff exponencial con límite de 30 s para el resto de casos reintentables. Un POST solo se reintenta si cuenta con idempotencyKey estable, garantizando que no se dupliquen eventos, evidencias ni notificaciones ante una respuesta perdida después de que el servidor ya guardó el cambio.",
+  "alternatives": [
+    "Reintentos ilimitados con backoff exponencial sin cota: Descartado porque ante fallos persistentes el cliente entraría en un bucle infinito de solicitudes, saturando el servidor y nunca informando al usuario de un fallo definitivo. Viola el requisito de demoras finitas y límites configurables.",
+    "Reintentar todos los métodos HTTP indiscriminadamente sin verificar identidad de operación: Descartado porque un POST sin Idempotency-Key repetido puede crear incidencias duplicadas, agregar evidencias dobles o disparar notificaciones múltiples al mismo actor, produciendo efectos secundarios irrecuperables en el estado del sistema."
+  ],
+  "tradeoff": "Beneficio: Los límites en attempt y la exigencia de idempotencyKey para POST garantizan ausencia de efectos duplicados y comunicación honesta de fallos al usuario cuando el servicio es irrecuperable. El respeto a Retry-After reduce la presión sobre el proveedor y evita penalizaciones por exceso de solicitudes. Costo: Un fallo en el intento 3 no se reintenta aunque pudiera recuperarse en el intento 4; este trade-off es aceptable porque el contrato público lo exige explícitamente y la alternativa manual garantiza continuidad operativa sin datos inventados.",
+  "requirementIds": [
+    "AC-01",
+    "AC-02",
+    "AC-03",
+    "AC-04",
+    "AC-05"
+  ],
+  "verification": [
+    {
+      "command": "npm test -- --ci --runInBand course-tests/public/week-09.test.ts",
+      "result": "PASS course-tests/public/week-09.test.ts (4 passed, 4 total)",
+      "evidence": "selectIncidentLocation acepta { label:'Zona de prueba', latitude:0, longitude:0 } con source:provider; devuelve source:manual ante null, { status:429 }, objeto incompleto y coordenadas inválidas (latitude:91). planRetry devuelve retry:true con idempotencyKey estable; retry:true con delayMs:800 respetando Retry-After; retry:false desde attempt:4; retry:false con requiresStableIdempotencyKey:true ante POST sin clave."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/__tests__/planRetry.test.ts",
+      "result": "PASS src/__tests__/planRetry.test.ts (14 passed, 14 total)",
+      "evidence": "Cubre: cese en attempt=4 y attempt=5, permiso en attempt=3, POST sin clave (503 y timeout), POST con clave (timeout y 503), Retry-After con 800ms y con 0ms, backoff exponencial en attempts 1/2/3 (1000/2000/4000ms) y verificación del límite de 30 s."
+    },
+    {
+      "command": "npm test -- --ci --runInBand src/__tests__/selectIncidentLocation.test.ts",
+      "result": "PASS src/__tests__/selectIncidentLocation.test.ts (21 passed, 21 total)",
+      "evidence": "Cubre: camino feliz con (0,0) y límites exactos (±90, ±180) y coordenadas negativas válidas; fallback ante null, undefined, string, número; fallback ante errores como dato ({status:429}, {status:500}); fallback ante objeto incompleto (sin lat, sin lng, sin label, label vacío, label con solo espacios); fallback ante coords inválidas (lat>90, lat<-90, lng>180, lng<-180, NaN, Infinity, strings en vez de números); verificación de que source:manual no incluye latitude ni longitude."
+    }
+  ]
+}

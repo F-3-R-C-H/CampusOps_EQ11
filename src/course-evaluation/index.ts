@@ -151,7 +151,27 @@ export function planRetry(_input: Readonly<{
   retryAfterMs?: number;
   idempotencyKey?: string;
 }>): Readonly<{ retry: boolean; delayMs: number; requiresStableIdempotencyKey: boolean }> {
-  return pending('planRetry');
+  const { method, status, attempt, retryAfterMs, idempotencyKey } = _input;
+
+  // Regla 1: límite absoluto de reintentos — no reintentar desde el intento 4
+  if (attempt >= 4) {
+    return { retry: false, delayMs: 0, requiresStableIdempotencyKey: false };
+  }
+
+  // Regla 2: POST sin identidad estable de operación — no se puede reintentar de forma segura
+  if (method === 'POST' && !idempotencyKey) {
+    return { retry: false, delayMs: 0, requiresStableIdempotencyKey: true };
+  }
+
+  // Regla 3: respuesta 429 con Retry-After válido — respetar la indicación del servidor
+  if (status === 429 && retryAfterMs !== undefined && retryAfterMs >= 0) {
+    return { retry: true, delayMs: retryAfterMs, requiresStableIdempotencyKey: false };
+  }
+
+  // Regla 4: resto de casos reintentables (GET idempotente, POST con clave, 429 sin header)
+  // Backoff exponencial con límite de 30 segundos
+  const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 30_000);
+  return { retry: true, delayMs, requiresStableIdempotencyKey: false };
 }
 
 export function reduceRemoteResponses(_input: Readonly<{
@@ -167,7 +187,42 @@ export function reducePermissionLifecycle(
   return pending('reducePermissionLifecycle');
 }
 
-/** Week 09: see docs/CAMPUSOPS_API.md; this is not a completed solution. */
+/** Week 09: see docs/CAMPUSOPS_API.md */
 export function selectIncidentLocation(_provider: unknown, _manualLabel: string): IncidentLocation {
-  return pending('selectIncidentLocation');
+  // Fallback manual: se activa ante cualquier dato no válido del proveedor
+  const fallback: IncidentLocation = { source: 'manual', label: _manualLabel };
+
+  // El proveedor debe ser un objeto no nulo y no array
+  if (_provider === null || typeof _provider !== 'object' || Array.isArray(_provider)) {
+    return fallback;
+  }
+
+  const p = _provider as Record<string, unknown>;
+
+  // label debe ser string no vacío
+  if (typeof p.label !== 'string' || p.label.trim() === '') {
+    return fallback;
+  }
+
+  // latitude y longitude deben ser números finitos dentro del rango geográfico válido
+  if (
+    typeof p.latitude !== 'number' ||
+    typeof p.longitude !== 'number' ||
+    !Number.isFinite(p.latitude) ||
+    !Number.isFinite(p.longitude) ||
+    p.latitude < -90 ||
+    p.latitude > 90 ||
+    p.longitude < -180 ||
+    p.longitude > 180
+  ) {
+    return fallback;
+  }
+
+  // Proveedor válido — no se inventan coordenadas, se devuelven exactamente las recibidas
+  return {
+    source: 'provider',
+    label: p.label,
+    latitude: p.latitude,
+    longitude: p.longitude,
+  };
 }
