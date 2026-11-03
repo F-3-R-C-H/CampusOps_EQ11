@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "commitSha": "222ea9390a3e2df84218714ea4fe5b67a66d497a",
+  "generatedAt": "2026-11-02T19:13:00-06:00",
+  "checks": [
+    {
+      "id": "retry-limit-attempt-4",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/lostResponse.test.ts",
+      "evidence": "Con fallos persistentes (500 y 429) el ciclo acotado ejecutó 4 solicitudes por escenario y planRetry devolvió retry:false en el intento 4. planRetry({method:'GET',status:'timeout',attempt:4}) devolvió retry:false en la prueba pública. No hubo solicitudes posteriores."
+    },
+    {
+      "id": "retry-after-honored",
+      "status": "pass",
+      "scenarioType": "nominal",
+      "command": "npm test -- --ci --runInBand src/__tests__/lostResponse.test.ts",
+      "evidence": "El backend envió Retry-After:1; la espera planificada fue 1000 ms en cada reintento. Con retryAfterMs:800, planRetry devolvió delayMs:800 (prueba pública)."
+    },
+    {
+      "id": "backoff-progressive-finite",
+      "status": "pass",
+      "scenarioType": "boundary",
+      "command": "npm test -- --ci --runInBand src/__tests__/lostResponse.test.ts",
+      "evidence": "Para 500 persistente las esperas planificadas fueron 1000, 2000 y 4000 ms (crecientes) y todas finitas y menores o iguales a 30000 ms."
+    },
+    {
+      "id": "lost-response-attempt-times",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/lostResponse.test.ts",
+      "evidence": "Intento 1: timeout a los 402 ms (límite del cliente 400 ms; el servidor responde a los 1500 ms) con espera planificada de 1000 ms. Intento 2: misma clave y cuerpo, HTTP 200 duplicate:true en 1 ms. Total: 2 solicitudes de resolución para 1 efecto en el servidor."
+    },
+    {
+      "id": "no-duplicate-on-lost-response",
+      "status": "pass",
+      "scenarioType": "failure",
+      "command": "npm test -- --ci --runInBand src/__tests__/lostResponse.test.ts",
+      "evidence": "Tras el reintento, GET /v1/incidents/campus-inc-001 mostró version:3, status:resolved e historial [start, resolve]: exactamente 1 acción resolve, igual que antes del reintento (sin duplicados)."
+    }
+  ]
+}
