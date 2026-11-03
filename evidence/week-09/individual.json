@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "week": 9,
+  "teamId": "EQ11",
+  "members": [
+    {
+      "studentId": "3523110683",
+      "commitShas": [
+        "a429bd2958b98f5fd2c1447686dcfec23cdf40db",
+        "9795922e49f94b91912b48892bad93f1d71ec5e6"
+      ],
+      "files": [
+        "src/course-evaluation/index.ts",
+        "src/__tests__/planRetry.test.ts",
+        "src/__tests__/selectIncidentLocation.test.ts",
+        "evidence/week-09/engineering.json"
+      ],
+      "tests": [
+        "course-tests/public/week-09.test.ts",
+        "src/__tests__/planRetry.test.ts",
+        "src/__tests__/selectIncidentLocation.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Se espera que selectIncidentLocation acepte respuestas del proveedor solo con coordenadas numéricas finitas dentro de [-90, 90] y [-180, 180] y active el fallback manual sin inventar coordenadas ante cualquier anomalía. planRetry debe respetar el límite absoluto en intento 4, exigir clave de idempotencia en POST, respetar Retry-After en 429 y aplicar backoff exponencial finito acotado a 30s.",
+      "command": "npm test -- --ci --runInBand course-tests/public/week-09.test.ts src/__tests__/planRetry.test.ts src/__tests__/selectIncidentLocation.test.ts",
+      "observedResult": "PASS: 3 suites, 39 pruebas aprobadas (4 públicas, 14 de planRetry, 21 de selectIncidentLocation), código de salida 0. Cero fallos. Comprobado cese en intento 4, bloqueo de POST sin idempotencyKey y fallback manual ante datos inválidos.",
+      "explanation": "Implementé selectIncidentLocation y planRetry en src/course-evaluation/index.ts según la especificación de CampusOps. selectIncidentLocation valida exhaustivamente el contrato del proveedor (objeto, coordenadas finitas y rangos geográficos) y recurre a la referencia manual sin inventar latitud ni longitud si la respuesta falla o contiene datos incompletos. planRetry evalúa intentos con árbol de decisión priorizado: cese en attempt >= 4, prohibición de reintentos POST sin idempotencyKey, espera exacta de Retry-After en 429 y backoff exponencial con cota máxima de 30 segundos. Diseñé 35 pruebas unitarias exhaustivas y redacté evidence/week-09/engineering.json con la justificación técnica de la política de resiliencia y verificación reproducible."
+    },
+    {
+      "studentId": "3523110858",
+      "commitShas": [
+        "222ea9390a3e2df84218714ea4fe5b67a66d497a"
+      ],
+      "files": [
+        "src/__tests__/lostResponse.test.ts",
+        "reports/week-09/fault-injection.json",
+        "reports/week-09/retry-metrics.json"
+      ],
+      "tests": [
+        "src/__tests__/lostResponse.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Tras un timeout_after_commit, el reintento con la misma Idempotency-Key y el mismo cuerpo responderá HTTP 200 con duplicate:true y el historial de campus-inc-001 conservará una sola acción resolve; con fallos persistentes 500 o 429 el ciclo acotado se detendrá en la cuarta solicitud.",
+      "command": "npm test -- --ci --runInBand src/__tests__/lostResponse.test.ts",
+      "observedResult": "PASS: 5 de 5 pruebas aprobadas. El cliente venció a los 400 ms, pero el servidor ya había guardado el cambio (versión 3, resolved); el reintento con la misma clave devolvió duplicate:true y el historial quedó [start, resolve]. Clave reutilizada con otro cuerpo dio 409, POST sin clave dio 400, y 500 y 429 persistentes se detuvieron en 4 solicitudes.",
+      "explanation": "Escribí una prueba que levanta el backend didáctico en un puerto dinámico y usa el CourseHttpClient real: envía la resolución con X-Course-Scenario:timeout_after_commit, comprueba con un GET que el servidor sí guardó el cambio, reintenta con la misma clave y contenido y verifica que no se duplica el historial. También probé clave reutilizada con otro cuerpo, POST sin clave y los límites de planRetry con 500 y 429 con Retry-After. Con esos resultados armé fault-injection.json y retry-metrics.json. Utilicé asistencia de IA (Claude) para escribir la prueba y estructurar los reportes; la verificación incluyó ejecutar la prueba contra el backend local y comparar cada evidencia con la salida observada."
+    },
+    {
+      "studentId": "3523110097",
+      "commitShas": [
+        "27e51b66f55ea5ef0c09715d6c72ef49ada159d2",
+        "5feebdc7ea476646c4053a4b9e7b298f3c960ca4",
+        "50e6d74f266818238eaca507c68b9e1c524e52c6"
+      ],
+      "files": [
+        "src/infrastructure/location/GeoCodingAdapter.ts",
+        "src/infrastructure/location/LocationCache.ts",
+        "src/__tests__/geoCodingAdapter.test.ts",
+        "docs/resilience-policy.md"
+      ],
+      "tests": [
+        "src/__tests__/geoCodingAdapter.test.ts"
+      ],
+      "reviews": [],
+      "prediction": "Una respuesta válida se devolverá y almacenará en caché. Las consultas equivalentes reutilizarán el resultado sin otra petición HTTP hasta vencer el TTL. Ante errores HTTP, 429, timeout, desconexión, JSON inválido o coordenadas inválidas, el adaptador devolverá null sin almacenar el fallo ni inventar coordenadas.",
+      "command": "npm test -- --ci --runInBand src/__tests__/geoCodingAdapter.test.ts",
+      "observedResult": "PASS: 31 de 31 pruebas aprobadas, código de salida 0. Se comprobaron validación de respuestas, reutilización y caducidad de caché, normalización, copias defensivas y manejo de fallos mediante dobles controlados, sin red real.",
+      "explanation": "Implementé GeoCodingAdapter reutilizando CourseHttpClient.requestJson y la configuración existente de autenticación, actor y timeout. Implementé LocationCache con TTL configurable de cinco minutos por defecto, reloj inyectable, normalización de consultas y copias defensivas. Añadí pruebas automatizadas y documenté la política de resiliencia y sus limitaciones. El adaptador devuelve null ante fallos y no ejecuta reintentos propios. La composición con la interfaz y selectIncidentLocation permanece pendiente. Utilicé asistencia de IA mediante OpenCode para analizar, implementar y revisar el bloque; la verificación incluyó 31 pruebas del adaptador, TypeScript, lint, pruebas públicas de semana 09, backend self-test, smoke aislado y generación del bundle Android."
+    }
+  ]
+}

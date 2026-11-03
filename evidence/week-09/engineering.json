@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "week": 9,
-  "commitSha": "a429bd2958b98f5fd2c1447686dcfec23cdf40db",
+  "commitSha": "ddea45667ad996c542826884c4608541d84c862c",
   "decision": "Se implementó una política de resiliencia de dos niveles para las integraciones de CampusOps con servicios externos. Nivel 1 — Selección de ubicación: selectIncidentLocation valida estrictamente que el resultado del proveedor sea un objeto con label textual no vacío y coordenadas numéricas finitas dentro de latitud [-90, 90] y longitud [-180, 180]; ante cualquier otra condición (null, error representado como dato, objeto incompleto, coordenadas inválidas o tipos incorrectos) devuelve la etiqueta manual sin inventar coordenadas. Nivel 2 — Planificación de reintentos: planRetry aplica un árbol de decisión con cuatro reglas en orden de prioridad: (1) cese absoluto en attempt >= 4, (2) bloqueo de POST sin identidad estable de operación, (3) respeto estricto a Retry-After para respuestas 429, y (4) backoff exponencial con límite de 30 s para el resto de casos reintentables. Un POST solo se reintenta si cuenta con idempotencyKey estable, garantizando que no se dupliquen eventos, evidencias ni notificaciones ante una respuesta perdida después de que el servidor ya guardó el cambio.",
   "alternatives": [
     "Reintentos ilimitados con backoff exponencial sin cota: Descartado porque ante fallos persistentes el cliente entraría en un bucle infinito de solicitudes, saturando el servidor y nunca informando al usuario de un fallo definitivo. Viola el requisito de demoras finitas y límites configurables.",
